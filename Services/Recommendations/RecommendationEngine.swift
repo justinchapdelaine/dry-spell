@@ -17,6 +17,18 @@ struct RecommendationResult: Equatable, Sendable {
 }
 
 struct RecommendationEngine {
+    func canApplyManualWatering(
+        using weatherSnapshot: WeatherSnapshot?,
+        now: Date = .now
+    ) -> Bool {
+        guard let weatherSnapshot else {
+            return false
+        }
+
+        let freshness = freshness(for: weatherSnapshot, now: now)
+        return freshness != .tooStale && !weatherSnapshot.isUnavailable
+    }
+
     func evaluate(
         gardenProfile: GardenProfile?,
         weatherSnapshot: WeatherSnapshot?,

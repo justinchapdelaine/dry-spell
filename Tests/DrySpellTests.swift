@@ -404,6 +404,42 @@ struct DrySpellTests {
     }
 
     @Test
+    func recommendationEngineAllowsManualWateringForStaleUsableSnapshot() {
+        let engine = RecommendationEngine()
+        let now = Date(timeIntervalSince1970: 1_713_456_000)
+        let snapshot = WeatherSnapshot(
+            fetchedAt: now.addingTimeInterval(-(7 * 60 * 60)),
+            observed7DayRainMM: 9,
+            forecast48hRainMM: 0,
+            dryDays: 5
+        )
+
+        #expect(engine.canApplyManualWatering(using: snapshot, now: now))
+    }
+
+    @Test
+    func recommendationEngineDisallowsManualWateringForTooStaleOrUnavailableSnapshot() {
+        let engine = RecommendationEngine()
+        let now = Date(timeIntervalSince1970: 1_713_456_000)
+        let tooStaleSnapshot = WeatherSnapshot(
+            fetchedAt: now.addingTimeInterval(-(25 * 60 * 60)),
+            observed7DayRainMM: 9,
+            forecast48hRainMM: 0,
+            dryDays: 5
+        )
+        let unavailableSnapshot = WeatherSnapshot(
+            fetchedAt: now,
+            observed7DayRainMM: 9,
+            forecast48hRainMM: 0,
+            dryDays: 5,
+            isUnavailable: true
+        )
+
+        #expect(!engine.canApplyManualWatering(using: tooStaleSnapshot, now: now))
+        #expect(!engine.canApplyManualWatering(using: unavailableSnapshot, now: now))
+    }
+
+    @Test
     func recommendationEngineReturnsWaterSoonAtExactDryThreshold() {
         let engine = RecommendationEngine()
         let now = Date(timeIntervalSince1970: 1_713_456_000)

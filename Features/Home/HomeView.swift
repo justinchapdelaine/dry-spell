@@ -136,10 +136,20 @@ struct HomeView: View {
                 .font(.headline)
 
             VStack(spacing: 12) {
-                MetricRow(
-                    title: "Last Meaningful Rain",
-                    value: lastMeaningfulRainText
-                )
+                VStack(alignment: .leading, spacing: 4) {
+                    MetricRow(
+                        title: "Last Meaningful Rain",
+                        value: lastMeaningfulRainText
+                    )
+
+                    if let lastMeaningfulRainDateText {
+                        Text(lastMeaningfulRainDateText)
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .accessibilityLabel("Last meaningful rain date, \(lastMeaningfulRainDateText)")
+                    }
+                }
                 MetricRow(
                     title: "Observed 7-Day Rain",
                     value: measurementText(weatherSnapshot?.observed7DayRainMM ?? 0)
@@ -224,7 +234,7 @@ struct HomeView: View {
             }
             .buttonStyle(.borderedProminent)
             .controlSize(.large)
-            .disabled(weatherSnapshot == nil || wateredToday(for: gardenProfile) || isMarkingWatered)
+            .disabled(!canMarkWatered || wateredToday(for: gardenProfile) || isMarkingWatered)
             .accessibilityHint("Records that you've already watered today.")
 
             ViewThatFits(in: .horizontal) {
@@ -314,7 +324,7 @@ struct HomeView: View {
 
     @MainActor
     private func markWatered(for gardenProfile: GardenProfile) async {
-        guard let weatherSnapshot else {
+        guard let weatherSnapshot, canMarkWatered else {
             activeAlert = HomeAlert(
                 title: "Weather Update Needed",
                 message: "Refresh weather before marking watered so Dry Spell can apply the correct watering credit."
@@ -449,6 +459,10 @@ struct HomeView: View {
         )
     }
 
+    private var canMarkWatered: Bool {
+        recommendationEngine.canApplyManualWatering(using: weatherSnapshot, now: .now)
+    }
+
     private var lastMeaningfulRainText: String {
         guard let weatherSnapshot else {
             return "Waiting for weather"
@@ -459,6 +473,14 @@ struct HomeView: View {
         }
 
         return "\(weatherSnapshot.dryDays) days ago"
+    }
+
+    private var lastMeaningfulRainDateText: String? {
+        guard let lastMeaningfulRainDate = weatherSnapshot?.lastMeaningfulRainDate else {
+            return nil
+        }
+
+        return lastMeaningfulRainDate.formatted(date: .abbreviated, time: .omitted)
     }
 
     private var explanationText: String {

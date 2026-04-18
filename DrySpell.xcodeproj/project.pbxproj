@@ -6,341 +6,506 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		0F180946C4EDC5713CBB8F3C /* GardenProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = D93996FD145215B7B2D7C618 /* GardenProfile.swift */; };
+		118B539078C006841FB30033 /* DrySpellWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = A35544C2D26194CBC03EF142 /* DrySpellWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		11AD9CD3D947FA4F74E3EC59 /* DrySpellWidgetExtensionBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7DBAC2C5CDAE6FF4196F7E3 /* DrySpellWidgetExtensionBundle.swift */; };
+		1635E178A56D38539FB17295 /* ManualWaterEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA41C5443E465BD4A772C33A /* ManualWaterEvent.swift */; };
+		29FD5078CC40BCB4D5CC3581 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B10E14805789DE72CDBEE791 /* Assets.xcassets */; };
+		2E34BA900F197792B54A2F47 /* AppConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3192E1188A63C385EFAB885 /* AppConstants.swift */; };
+		3D03961870C82DED51166FB8 /* DrySpellWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A7843B008DC3BFAE058B874 /* DrySpellWidget.swift */; };
+		4CE21B0311262C41A0F381DB /* WidgetSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = 346EB3D0F2B646C20BAE53A3 /* WidgetSnapshot.swift */; };
+		4DBEEE1D0CD983D11844F0E8 /* WidgetSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = 346EB3D0F2B646C20BAE53A3 /* WidgetSnapshot.swift */; };
+		5874C2D247F5F49F36041C30 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0EB5C0EE33EE53F4EC993D0 /* RootView.swift */; };
+		609EF6D350AB09EB63095CB8 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC78813949C105315BC5BD3C /* SettingsView.swift */; };
+		63F623BDBDC5F6A0760A6A9A /* DrySpellApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12BAB5D37DAB97E263109341 /* DrySpellApp.swift */; };
+		6542B801AE6D6E1E639D1DB7 /* RecommendationEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F109D3F8AC27D672F352D6D /* RecommendationEngine.swift */; };
+		6FADE07DF8EC0510857BEC9D /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA829D03ECB56F373E5BE4A3 /* HomeView.swift */; };
+		7A527B935A8A7D079304079D /* WeatherClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 498370EBE8CB4078DAF13C46 /* WeatherClient.swift */; };
+		8D62B82DA9886347AFD260FC /* BackgroundRefreshScheduler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C3420BBC87A27CE1953791B /* BackgroundRefreshScheduler.swift */; };
+		938766E76325F245B9A3DF1F /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43F59B8D3EB4F15230CF54CE /* OnboardingView.swift */; };
+		B86FCFA8051E81344FAEF58F /* NotificationAuthorizationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63B7A57F91B11C385FFDC609 /* NotificationAuthorizationService.swift */; };
+		C6F170F5A2C190B9AC062FC5 /* PlaceholderSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D6E75AC890E7B0CEE7596C5 /* PlaceholderSection.swift */; };
+		CC125DAFD95922EF36C825B6 /* DrySpellTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39E7907EC08A89B53ED997F0 /* DrySpellTests.swift */; };
+		CDC93E1A05486B84C6EBCCA6 /* WeatherSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7470CFD7B031BBB502084616 /* WeatherSnapshot.swift */; };
+		CDED445BF33C1972CF1F6B8F /* WidgetSnapshotStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95A16EF65262120EBE2BE5D0 /* WidgetSnapshotStore.swift */; };
+		F2E1180DFB9BCEE6AB5138BA /* LocationSearchService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AF279399831DE5E8356CC18 /* LocationSearchService.swift */; };
+		F6BF1949D372062911DE98AD /* DrySpellModelContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = B029981655A56B94E620BC02 /* DrySpellModelContainer.swift */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
-		D0124C012F92E34200DB7336 /* PBXContainerItemProxy */ = {
+		2D7AB292D573AA79453BA2C8 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
-			containerPortal = D0124BE92F92E34200DB7336 /* Project object */;
+			containerPortal = C7BD1E6589E6D6519026FDD9 /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = D0124BF02F92E34200DB7336;
-			remoteInfo = DrySpell;
+			remoteGlobalIDString = 89573853C495E9D3C10CFA97;
+			remoteInfo = DrySpellApp;
 		};
-		D0124C0B2F92E34200DB7336 /* PBXContainerItemProxy */ = {
+		66D6BE767BF02C7386A605EE /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
-			containerPortal = D0124BE92F92E34200DB7336 /* Project object */;
+			containerPortal = C7BD1E6589E6D6519026FDD9 /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = D0124BF02F92E34200DB7336;
-			remoteInfo = DrySpell;
+			remoteGlobalIDString = E5855FCCA5329250DD27E88E;
+			remoteInfo = DrySpellWidgetExtension;
 		};
 /* End PBXContainerItemProxy section */
 
+/* Begin PBXCopyFilesBuildPhase section */
+		37D0ADCAC2EAFD441C165E7E /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				118B539078C006841FB30033 /* DrySpellWidgetExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
-		D0124BF12F92E34200DB7336 /* DrySpell.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DrySpell.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		D0124C002F92E34200DB7336 /* DrySpellTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DrySpellTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		D0124C0A2F92E34200DB7336 /* DrySpellUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DrySpellUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		12BAB5D37DAB97E263109341 /* DrySpellApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrySpellApp.swift; sourceTree = "<group>"; };
+		1D6E75AC890E7B0CEE7596C5 /* PlaceholderSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaceholderSection.swift; sourceTree = "<group>"; };
+		346EB3D0F2B646C20BAE53A3 /* WidgetSnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetSnapshot.swift; sourceTree = "<group>"; };
+		39E7907EC08A89B53ED997F0 /* DrySpellTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrySpellTests.swift; sourceTree = "<group>"; };
+		43F59B8D3EB4F15230CF54CE /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
+		498370EBE8CB4078DAF13C46 /* WeatherClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeatherClient.swift; sourceTree = "<group>"; };
+		4F109D3F8AC27D672F352D6D /* RecommendationEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecommendationEngine.swift; sourceTree = "<group>"; };
+		63B7A57F91B11C385FFDC609 /* NotificationAuthorizationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationAuthorizationService.swift; sourceTree = "<group>"; };
+		6AF279399831DE5E8356CC18 /* LocationSearchService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationSearchService.swift; sourceTree = "<group>"; };
+		7470CFD7B031BBB502084616 /* WeatherSnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeatherSnapshot.swift; sourceTree = "<group>"; };
+		7C3420BBC87A27CE1953791B /* BackgroundRefreshScheduler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundRefreshScheduler.swift; sourceTree = "<group>"; };
+		8A7843B008DC3BFAE058B874 /* DrySpellWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrySpellWidget.swift; sourceTree = "<group>"; };
+		8ACEC1855D7DA66A843DFA05 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		95A16EF65262120EBE2BE5D0 /* WidgetSnapshotStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetSnapshotStore.swift; sourceTree = "<group>"; };
+		A35544C2D26194CBC03EF142 /* DrySpellWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = DrySpellWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		A7DBAC2C5CDAE6FF4196F7E3 /* DrySpellWidgetExtensionBundle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrySpellWidgetExtensionBundle.swift; sourceTree = "<group>"; };
+		B029981655A56B94E620BC02 /* DrySpellModelContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrySpellModelContainer.swift; sourceTree = "<group>"; };
+		B10E14805789DE72CDBEE791 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		BC78813949C105315BC5BD3C /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		C0EB5C0EE33EE53F4EC993D0 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
+		C4B849C00A0AFA3D96F940EC /* DrySpell.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DrySpell.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		D93996FD145215B7B2D7C618 /* GardenProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GardenProfile.swift; sourceTree = "<group>"; };
+		DA80160A9894352BED4D9471 /* DrySpellTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DrySpellTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		DA829D03ECB56F373E5BE4A3 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
+		EA41C5443E465BD4A772C33A /* ManualWaterEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ManualWaterEvent.swift; sourceTree = "<group>"; };
+		F3192E1188A63C385EFAB885 /* AppConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppConstants.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
-/* Begin PBXFileSystemSynchronizedRootGroup section */
-		D0124BF32F92E34200DB7336 /* DrySpell */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = DrySpell;
-			sourceTree = "<group>";
-		};
-		D0124C032F92E34200DB7336 /* DrySpellTests */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = DrySpellTests;
-			sourceTree = "<group>";
-		};
-		D0124C0D2F92E34200DB7336 /* DrySpellUITests */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = DrySpellUITests;
-			sourceTree = "<group>";
-		};
-/* End PBXFileSystemSynchronizedRootGroup section */
-
-/* Begin PBXFrameworksBuildPhase section */
-		D0124BEE2F92E34200DB7336 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		D0124BFD2F92E34200DB7336 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		D0124C072F92E34200DB7336 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-/* End PBXFrameworksBuildPhase section */
-
 /* Begin PBXGroup section */
-		D0124BE82F92E34200DB7336 = {
+		083FF79F20F270394602BB67 /* Tests */ = {
 			isa = PBXGroup;
 			children = (
-				D0124BF32F92E34200DB7336 /* DrySpell */,
-				D0124C032F92E34200DB7336 /* DrySpellTests */,
-				D0124C0D2F92E34200DB7336 /* DrySpellUITests */,
-				D0124BF22F92E34200DB7336 /* Products */,
+				39E7907EC08A89B53ED997F0 /* DrySpellTests.swift */,
+				8ACEC1855D7DA66A843DFA05 /* Info.plist */,
 			);
+			path = Tests;
 			sourceTree = "<group>";
 		};
-		D0124BF22F92E34200DB7336 /* Products */ = {
+		14BF0D482A8D3E05E0CE5A89 /* Recommendations */ = {
 			isa = PBXGroup;
 			children = (
-				D0124BF12F92E34200DB7336 /* DrySpell.app */,
-				D0124C002F92E34200DB7336 /* DrySpellTests.xctest */,
-				D0124C0A2F92E34200DB7336 /* DrySpellUITests.xctest */,
+				4F109D3F8AC27D672F352D6D /* RecommendationEngine.swift */,
+			);
+			path = Recommendations;
+			sourceTree = "<group>";
+		};
+		1A3A075FF834F932756CE32B /* Features */ = {
+			isa = PBXGroup;
+			children = (
+				A6E211118B131E03CD9D2CE6 /* Home */,
+				81A7ACFB51DC88841D9D8E41 /* Onboarding */,
+				53DF946795F09ADE6D840E54 /* Settings */,
+			);
+			path = Features;
+			sourceTree = "<group>";
+		};
+		4430F73BA08C031BC078FE06 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				C4B849C00A0AFA3D96F940EC /* DrySpell.app */,
+				DA80160A9894352BED4D9471 /* DrySpellTests.xctest */,
+				A35544C2D26194CBC03EF142 /* DrySpellWidgetExtension.appex */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		53DF946795F09ADE6D840E54 /* Settings */ = {
+			isa = PBXGroup;
+			children = (
+				BC78813949C105315BC5BD3C /* SettingsView.swift */,
+			);
+			path = Settings;
+			sourceTree = "<group>";
+		};
+		54D6D5EB2EDC413A3F262F4B /* BackgroundRefresh */ = {
+			isa = PBXGroup;
+			children = (
+				7C3420BBC87A27CE1953791B /* BackgroundRefreshScheduler.swift */,
+			);
+			path = BackgroundRefresh;
+			sourceTree = "<group>";
+		};
+		605FA555D90578484100BCAF /* WidgetSharing */ = {
+			isa = PBXGroup;
+			children = (
+				346EB3D0F2B646C20BAE53A3 /* WidgetSnapshot.swift */,
+				95A16EF65262120EBE2BE5D0 /* WidgetSnapshotStore.swift */,
+			);
+			path = WidgetSharing;
+			sourceTree = "<group>";
+		};
+		81A7ACFB51DC88841D9D8E41 /* Onboarding */ = {
+			isa = PBXGroup;
+			children = (
+				43F59B8D3EB4F15230CF54CE /* OnboardingView.swift */,
+			);
+			path = Onboarding;
+			sourceTree = "<group>";
+		};
+		93DFF02DC8A5534A9216221D /* Widget */ = {
+			isa = PBXGroup;
+			children = (
+				8A7843B008DC3BFAE058B874 /* DrySpellWidget.swift */,
+				A7DBAC2C5CDAE6FF4196F7E3 /* DrySpellWidgetExtensionBundle.swift */,
+			);
+			path = Widget;
+			sourceTree = "<group>";
+		};
+		A30362E2BAD32476C1A359EC = {
+			isa = PBXGroup;
+			children = (
+				D5520504DB2E53732DAF7A5A /* App */,
+				1A3A075FF834F932756CE32B /* Features */,
+				D9CEADE8F9B9DCE328DCE260 /* Models */,
+				D27157540647C34AD5C8CF87 /* Persistence */,
+				A9DAF2C6B25A64CA7648C2E6 /* Services */,
+				BF6CE07F0EA3D564A94E5427 /* SharedUI */,
+				083FF79F20F270394602BB67 /* Tests */,
+				93DFF02DC8A5534A9216221D /* Widget */,
+				4430F73BA08C031BC078FE06 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		A4163012349560FAFD0DDCB0 /* Weather */ = {
+			isa = PBXGroup;
+			children = (
+				6AF279399831DE5E8356CC18 /* LocationSearchService.swift */,
+				498370EBE8CB4078DAF13C46 /* WeatherClient.swift */,
+			);
+			path = Weather;
+			sourceTree = "<group>";
+		};
+		A6E211118B131E03CD9D2CE6 /* Home */ = {
+			isa = PBXGroup;
+			children = (
+				DA829D03ECB56F373E5BE4A3 /* HomeView.swift */,
+			);
+			path = Home;
+			sourceTree = "<group>";
+		};
+		A9DAF2C6B25A64CA7648C2E6 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				54D6D5EB2EDC413A3F262F4B /* BackgroundRefresh */,
+				AD8EB697ACB8A8B9B87D76C5 /* Notifications */,
+				14BF0D482A8D3E05E0CE5A89 /* Recommendations */,
+				A4163012349560FAFD0DDCB0 /* Weather */,
+				605FA555D90578484100BCAF /* WidgetSharing */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		AD8EB697ACB8A8B9B87D76C5 /* Notifications */ = {
+			isa = PBXGroup;
+			children = (
+				63B7A57F91B11C385FFDC609 /* NotificationAuthorizationService.swift */,
+			);
+			path = Notifications;
+			sourceTree = "<group>";
+		};
+		BF6CE07F0EA3D564A94E5427 /* SharedUI */ = {
+			isa = PBXGroup;
+			children = (
+				1D6E75AC890E7B0CEE7596C5 /* PlaceholderSection.swift */,
+			);
+			path = SharedUI;
+			sourceTree = "<group>";
+		};
+		D27157540647C34AD5C8CF87 /* Persistence */ = {
+			isa = PBXGroup;
+			children = (
+				B029981655A56B94E620BC02 /* DrySpellModelContainer.swift */,
+			);
+			path = Persistence;
+			sourceTree = "<group>";
+		};
+		D5520504DB2E53732DAF7A5A /* App */ = {
+			isa = PBXGroup;
+			children = (
+				F3192E1188A63C385EFAB885 /* AppConstants.swift */,
+				B10E14805789DE72CDBEE791 /* Assets.xcassets */,
+				12BAB5D37DAB97E263109341 /* DrySpellApp.swift */,
+				C0EB5C0EE33EE53F4EC993D0 /* RootView.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		D9CEADE8F9B9DCE328DCE260 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				D93996FD145215B7B2D7C618 /* GardenProfile.swift */,
+				EA41C5443E465BD4A772C33A /* ManualWaterEvent.swift */,
+				7470CFD7B031BBB502084616 /* WeatherSnapshot.swift */,
+			);
+			path = Models;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		D0124BF02F92E34200DB7336 /* DrySpell */ = {
+		1317AE69B5F7FDDA2354BCEA /* DrySpellTests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = D0124C142F92E34200DB7336 /* Build configuration list for PBXNativeTarget "DrySpell" */;
+			buildConfigurationList = 5CC54B98E198C48D97858B67 /* Build configuration list for PBXNativeTarget "DrySpellTests" */;
 			buildPhases = (
-				D0124BED2F92E34200DB7336 /* Sources */,
-				D0124BEE2F92E34200DB7336 /* Frameworks */,
-				D0124BEF2F92E34200DB7336 /* Resources */,
+				97FBF14286B8DCD8EB3326F2 /* Sources */,
 			);
 			buildRules = (
 			);
 			dependencies = (
-			);
-			fileSystemSynchronizedGroups = (
-				D0124BF32F92E34200DB7336 /* DrySpell */,
-			);
-			name = DrySpell;
-			packageProductDependencies = (
-			);
-			productName = DrySpell;
-			productReference = D0124BF12F92E34200DB7336 /* DrySpell.app */;
-			productType = "com.apple.product-type.application";
-		};
-		D0124BFF2F92E34200DB7336 /* DrySpellTests */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = D0124C172F92E34200DB7336 /* Build configuration list for PBXNativeTarget "DrySpellTests" */;
-			buildPhases = (
-				D0124BFC2F92E34200DB7336 /* Sources */,
-				D0124BFD2F92E34200DB7336 /* Frameworks */,
-				D0124BFE2F92E34200DB7336 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				D0124C022F92E34200DB7336 /* PBXTargetDependency */,
-			);
-			fileSystemSynchronizedGroups = (
-				D0124C032F92E34200DB7336 /* DrySpellTests */,
+				1C6A92977E2742ADB808E717 /* PBXTargetDependency */,
 			);
 			name = DrySpellTests;
 			packageProductDependencies = (
 			);
 			productName = DrySpellTests;
-			productReference = D0124C002F92E34200DB7336 /* DrySpellTests.xctest */;
+			productReference = DA80160A9894352BED4D9471 /* DrySpellTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
-		D0124C092F92E34200DB7336 /* DrySpellUITests */ = {
+		89573853C495E9D3C10CFA97 /* DrySpellApp */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = D0124C1A2F92E34200DB7336 /* Build configuration list for PBXNativeTarget "DrySpellUITests" */;
+			buildConfigurationList = 67F9A43225A5B50922433D42 /* Build configuration list for PBXNativeTarget "DrySpellApp" */;
 			buildPhases = (
-				D0124C062F92E34200DB7336 /* Sources */,
-				D0124C072F92E34200DB7336 /* Frameworks */,
-				D0124C082F92E34200DB7336 /* Resources */,
+				5AE834D94BC8D1C1D02B344F /* Sources */,
+				63028142CCF542F3E575CACC /* Resources */,
+				37D0ADCAC2EAFD441C165E7E /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
-				D0124C0C2F92E34200DB7336 /* PBXTargetDependency */,
+				910B99AE818982B1F1E317A5 /* PBXTargetDependency */,
 			);
-			fileSystemSynchronizedGroups = (
-				D0124C0D2F92E34200DB7336 /* DrySpellUITests */,
-			);
-			name = DrySpellUITests;
+			name = DrySpellApp;
 			packageProductDependencies = (
 			);
-			productName = DrySpellUITests;
-			productReference = D0124C0A2F92E34200DB7336 /* DrySpellUITests.xctest */;
-			productType = "com.apple.product-type.bundle.ui-testing";
+			productName = DrySpellApp;
+			productReference = C4B849C00A0AFA3D96F940EC /* DrySpell.app */;
+			productType = "com.apple.product-type.application";
+		};
+		E5855FCCA5329250DD27E88E /* DrySpellWidgetExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 299C450DD92D2593F2ED207F /* Build configuration list for PBXNativeTarget "DrySpellWidgetExtension" */;
+			buildPhases = (
+				A01FE2F34BE5C12ECE6EDE59 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = DrySpellWidgetExtension;
+			packageProductDependencies = (
+			);
+			productName = DrySpellWidgetExtension;
+			productReference = A35544C2D26194CBC03EF142 /* DrySpellWidgetExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
-		D0124BE92F92E34200DB7336 /* Project object */ = {
+		C7BD1E6589E6D6519026FDD9 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				BuildIndependentTargetsInParallel = 1;
-				LastSwiftUpdateCheck = 2640;
+				BuildIndependentTargetsInParallel = YES;
 				LastUpgradeCheck = 2640;
 				TargetAttributes = {
-					D0124BF02F92E34200DB7336 = {
-						CreatedOnToolsVersion = 26.4;
+					1317AE69B5F7FDDA2354BCEA = {
+						DevelopmentTeam = ZU3GWZ6CUM;
+						ProvisioningStyle = Automatic;
 					};
-					D0124BFF2F92E34200DB7336 = {
-						CreatedOnToolsVersion = 26.4;
-						TestTargetID = D0124BF02F92E34200DB7336;
+					89573853C495E9D3C10CFA97 = {
+						DevelopmentTeam = ZU3GWZ6CUM;
+						ProvisioningStyle = Automatic;
 					};
-					D0124C092F92E34200DB7336 = {
-						CreatedOnToolsVersion = 26.4;
-						TestTargetID = D0124BF02F92E34200DB7336;
+					E5855FCCA5329250DD27E88E = {
+						DevelopmentTeam = ZU3GWZ6CUM;
+						ProvisioningStyle = Automatic;
 					};
 				};
 			};
-			buildConfigurationList = D0124BEC2F92E34200DB7336 /* Build configuration list for PBXProject "DrySpell" */;
+			buildConfigurationList = 78C33B195BA4D33681C7B5A3 /* Build configuration list for PBXProject "DrySpell" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
-				en,
 				Base,
+				en,
 			);
-			mainGroup = D0124BE82F92E34200DB7336;
+			mainGroup = A30362E2BAD32476C1A359EC;
 			minimizedProjectReferenceProxies = 1;
 			preferredProjectObjectVersion = 77;
-			productRefGroup = D0124BF22F92E34200DB7336 /* Products */;
+			productRefGroup = 4430F73BA08C031BC078FE06 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				D0124BF02F92E34200DB7336 /* DrySpell */,
-				D0124BFF2F92E34200DB7336 /* DrySpellTests */,
-				D0124C092F92E34200DB7336 /* DrySpellUITests */,
+				89573853C495E9D3C10CFA97 /* DrySpellApp */,
+				1317AE69B5F7FDDA2354BCEA /* DrySpellTests */,
+				E5855FCCA5329250DD27E88E /* DrySpellWidgetExtension */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
-		D0124BEF2F92E34200DB7336 /* Resources */ = {
+		63028142CCF542F3E575CACC /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		D0124BFE2F92E34200DB7336 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		D0124C082F92E34200DB7336 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
+				29FD5078CC40BCB4D5CC3581 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		D0124BED2F92E34200DB7336 /* Sources */ = {
+		5AE834D94BC8D1C1D02B344F /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2E34BA900F197792B54A2F47 /* AppConstants.swift in Sources */,
+				8D62B82DA9886347AFD260FC /* BackgroundRefreshScheduler.swift in Sources */,
+				63F623BDBDC5F6A0760A6A9A /* DrySpellApp.swift in Sources */,
+				F6BF1949D372062911DE98AD /* DrySpellModelContainer.swift in Sources */,
+				0F180946C4EDC5713CBB8F3C /* GardenProfile.swift in Sources */,
+				6FADE07DF8EC0510857BEC9D /* HomeView.swift in Sources */,
+				F2E1180DFB9BCEE6AB5138BA /* LocationSearchService.swift in Sources */,
+				1635E178A56D38539FB17295 /* ManualWaterEvent.swift in Sources */,
+				B86FCFA8051E81344FAEF58F /* NotificationAuthorizationService.swift in Sources */,
+				938766E76325F245B9A3DF1F /* OnboardingView.swift in Sources */,
+				C6F170F5A2C190B9AC062FC5 /* PlaceholderSection.swift in Sources */,
+				6542B801AE6D6E1E639D1DB7 /* RecommendationEngine.swift in Sources */,
+				5874C2D247F5F49F36041C30 /* RootView.swift in Sources */,
+				609EF6D350AB09EB63095CB8 /* SettingsView.swift in Sources */,
+				7A527B935A8A7D079304079D /* WeatherClient.swift in Sources */,
+				CDC93E1A05486B84C6EBCCA6 /* WeatherSnapshot.swift in Sources */,
+				4DBEEE1D0CD983D11844F0E8 /* WidgetSnapshot.swift in Sources */,
+				CDED445BF33C1972CF1F6B8F /* WidgetSnapshotStore.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		D0124BFC2F92E34200DB7336 /* Sources */ = {
+		97FBF14286B8DCD8EB3326F2 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CC125DAFD95922EF36C825B6 /* DrySpellTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		D0124C062F92E34200DB7336 /* Sources */ = {
+		A01FE2F34BE5C12ECE6EDE59 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3D03961870C82DED51166FB8 /* DrySpellWidget.swift in Sources */,
+				11AD9CD3D947FA4F74E3EC59 /* DrySpellWidgetExtensionBundle.swift in Sources */,
+				4CE21B0311262C41A0F381DB /* WidgetSnapshot.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		D0124C022F92E34200DB7336 /* PBXTargetDependency */ = {
+		1C6A92977E2742ADB808E717 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = D0124BF02F92E34200DB7336 /* DrySpell */;
-			targetProxy = D0124C012F92E34200DB7336 /* PBXContainerItemProxy */;
+			target = 89573853C495E9D3C10CFA97 /* DrySpellApp */;
+			targetProxy = 2D7AB292D573AA79453BA2C8 /* PBXContainerItemProxy */;
 		};
-		D0124C0C2F92E34200DB7336 /* PBXTargetDependency */ = {
+		910B99AE818982B1F1E317A5 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = D0124BF02F92E34200DB7336 /* DrySpell */;
-			targetProxy = D0124C0B2F92E34200DB7336 /* PBXContainerItemProxy */;
+			target = E5855FCCA5329250DD27E88E /* DrySpellWidgetExtension */;
+			targetProxy = 66D6BE767BF02C7386A605EE /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
-		D0124C122F92E34200DB7336 /* Debug */ = {
+		367F833E42BA6B65583B7086 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_SEARCH_USER_PATHS = NO;
-				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
-				CLANG_ANALYZER_NONNULL = YES;
-				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
-				CLANG_ENABLE_MODULES = YES;
-				CLANG_ENABLE_OBJC_ARC = YES;
-				CLANG_ENABLE_OBJC_WEAK = YES;
-				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
-				CLANG_WARN_BOOL_CONVERSION = YES;
-				CLANG_WARN_COMMA = YES;
-				CLANG_WARN_CONSTANT_CONVERSION = YES;
-				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
-				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
-				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
-				CLANG_WARN_EMPTY_BODY = YES;
-				CLANG_WARN_ENUM_CONVERSION = YES;
-				CLANG_WARN_INFINITE_RECURSION = YES;
-				CLANG_WARN_INT_CONVERSION = YES;
-				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
-				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
-				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
-				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
-				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
-				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
-				CLANG_WARN_STRICT_PROTOTYPES = YES;
-				CLANG_WARN_SUSPICIOUS_MOVE = YES;
-				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
-				CLANG_WARN_UNREACHABLE_CODE = YES;
-				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				COPY_PHASE_STRIP = NO;
-				DEBUG_INFORMATION_FORMAT = dwarf;
-				DEVELOPMENT_TEAM = ZU3GWZ6CUM;
-				ENABLE_STRICT_OBJC_MSGSEND = YES;
-				ENABLE_TESTABILITY = YES;
-				ENABLE_USER_SCRIPT_SANDBOXING = YES;
-				GCC_C_LANGUAGE_STANDARD = gnu17;
-				GCC_DYNAMIC_NO_PIC = NO;
-				GCC_NO_COMMON_BLOCKS = YES;
-				GCC_OPTIMIZATION_LEVEL = 0;
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					"DEBUG=1",
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_ENTITLEMENTS = Widget/Support/DrySpellWidgetExtension.entitlements;
+				INFOPLIST_FILE = Widget/Support/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
 				);
-				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
-				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
-				GCC_WARN_UNDECLARED_SELECTOR = YES;
-				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
-				GCC_WARN_UNUSED_FUNCTION = YES;
-				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 26.4;
-				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
-				MTL_FAST_MATH = YES;
-				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.justinchapdelaine.dryspell.widget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
-				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
-				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
 		};
-		D0124C132F92E34200DB7336 /* Release */ = {
+		3E8BB1DDA47F25B8D4546A92 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = App/Support/DrySpellApp.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				INFOPLIST_FILE = App/Support/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.justinchapdelaine.dryspell;
+				PRODUCT_MODULE_NAME = DrySpell;
+				PRODUCT_NAME = DrySpell;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		42B4C5D9374B3E9EDCC13537 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = App/Support/DrySpellApp.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				INFOPLIST_FILE = App/Support/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.justinchapdelaine.dryspell;
+				PRODUCT_MODULE_NAME = DrySpell;
+				PRODUCT_NAME = DrySpell;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		6A14B860A6C2F2B7F016AB25 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
 				CLANG_ENABLE_OBJC_WEAK = YES;
@@ -366,13 +531,15 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = ZU3GWZ6CUM;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
-				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
@@ -380,204 +547,197 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 26.4;
-				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				MARKETING_VERSION = 1.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
-				VALIDATE_PRODUCT = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
 			};
 			name = Release;
 		};
-		D0124C152F92E34200DB7336 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = ZU3GWZ6CUM;
-				ENABLE_PREVIEWS = YES;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
-				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-				);
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.justinchapdelaine.DrySpell;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				STRING_CATALOG_GENERATE_SYMBOLS = YES;
-				SWIFT_APPROACHABLE_CONCURRENCY = YES;
-				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-			};
-			name = Debug;
-		};
-		D0124C162F92E34200DB7336 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = ZU3GWZ6CUM;
-				ENABLE_PREVIEWS = YES;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
-				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-				);
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.justinchapdelaine.DrySpell;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				STRING_CATALOG_GENERATE_SYMBOLS = YES;
-				SWIFT_APPROACHABLE_CONCURRENCY = YES;
-				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-			};
-			name = Release;
-		};
-		D0124C182F92E34200DB7336 /* Debug */ = {
+		908BAA0634C5ED3BFAA493C0 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = ZU3GWZ6CUM;
-				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 26.4;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.justinchapdelaine.DrySpellTests;
+				INFOPLIST_FILE = Tests/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.justinchapdelaine.dryspell.tests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
-				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/DrySpell.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/DrySpell";
-			};
-			name = Debug;
-		};
-		D0124C192F92E34200DB7336 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = ZU3GWZ6CUM;
-				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 26.4;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.justinchapdelaine.DrySpellTests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				STRING_CATALOG_GENERATE_SYMBOLS = NO;
-				SWIFT_APPROACHABLE_CONCURRENCY = YES;
-				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
-				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/DrySpell.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/DrySpell";
 			};
 			name = Release;
 		};
-		D0124C1B2F92E34200DB7336 /* Debug */ = {
+		F5C2269335DA385955629048 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
 				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = ZU3GWZ6CUM;
-				GENERATE_INFOPLIST_FILE = YES;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.justinchapdelaine.DrySpellUITests;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
-				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_TARGET_NAME = DrySpell;
 			};
 			name = Debug;
 		};
-		D0124C1C2F92E34200DB7336 /* Release */ = {
+		F8C93F59B389D67B03F49CEC /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = ZU3GWZ6CUM;
-				GENERATE_INFOPLIST_FILE = YES;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.justinchapdelaine.DrySpellUITests;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				INFOPLIST_FILE = Tests/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.justinchapdelaine.dryspell.tests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
-				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
-				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_TARGET_NAME = DrySpell;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/DrySpell.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/DrySpell";
+			};
+			name = Debug;
+		};
+		F9975E5826886122907DC0B6 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_ENTITLEMENTS = Widget/Support/DrySpellWidgetExtension.entitlements;
+				INFOPLIST_FILE = Widget/Support/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.justinchapdelaine.dryspell.widget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
 		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		D0124BEC2F92E34200DB7336 /* Build configuration list for PBXProject "DrySpell" */ = {
+		299C450DD92D2593F2ED207F /* Build configuration list for PBXNativeTarget "DrySpellWidgetExtension" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				D0124C122F92E34200DB7336 /* Debug */,
-				D0124C132F92E34200DB7336 /* Release */,
+				367F833E42BA6B65583B7086 /* Debug */,
+				F9975E5826886122907DC0B6 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
+			defaultConfigurationName = Debug;
 		};
-		D0124C142F92E34200DB7336 /* Build configuration list for PBXNativeTarget "DrySpell" */ = {
+		5CC54B98E198C48D97858B67 /* Build configuration list for PBXNativeTarget "DrySpellTests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				D0124C152F92E34200DB7336 /* Debug */,
-				D0124C162F92E34200DB7336 /* Release */,
+				F8C93F59B389D67B03F49CEC /* Debug */,
+				908BAA0634C5ED3BFAA493C0 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
+			defaultConfigurationName = Debug;
 		};
-		D0124C172F92E34200DB7336 /* Build configuration list for PBXNativeTarget "DrySpellTests" */ = {
+		67F9A43225A5B50922433D42 /* Build configuration list for PBXNativeTarget "DrySpellApp" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				D0124C182F92E34200DB7336 /* Debug */,
-				D0124C192F92E34200DB7336 /* Release */,
+				3E8BB1DDA47F25B8D4546A92 /* Debug */,
+				42B4C5D9374B3E9EDCC13537 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
+			defaultConfigurationName = Debug;
 		};
-		D0124C1A2F92E34200DB7336 /* Build configuration list for PBXNativeTarget "DrySpellUITests" */ = {
+		78C33B195BA4D33681C7B5A3 /* Build configuration list for PBXProject "DrySpell" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				D0124C1B2F92E34200DB7336 /* Debug */,
-				D0124C1C2F92E34200DB7336 /* Release */,
+				F5C2269335DA385955629048 /* Debug */,
+				6A14B860A6C2F2B7F016AB25 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
+			defaultConfigurationName = Debug;
 		};
 /* End XCConfigurationList section */
 	};
-	rootObject = D0124BE92F92E34200DB7336 /* Project object */;
+	rootObject = C7BD1E6589E6D6519026FDD9 /* Project object */;
 }

@@ -10,6 +10,7 @@ struct HomeView: View {
     @State private var isRefreshingWeather = false
     @State private var isMarkingWatered = false
     @State private var isShowingSettings = false
+    @State private var isShowingAttributionDetails = false
     @State private var weatherRefreshError: String?
     @State private var activeAlert: HomeAlert?
 
@@ -25,6 +26,8 @@ struct HomeView: View {
         weatherSnapshots.first
     }
 
+    private let contentMaxWidth: CGFloat = 760
+
     var body: some View {
         Group {
             if let gardenProfile {
@@ -33,18 +36,21 @@ struct HomeView: View {
                         recommendationHeader(for: gardenProfile)
                         metricsSection(for: gardenProfile)
                         explanationSection
-                        attributionSection
-                        actionsSection(for: gardenProfile)
 
                         if let weatherRefreshError {
-                            Label(weatherRefreshError, systemImage: "exclamationmark.triangle")
-                                .font(.footnote)
-                                .foregroundStyle(.orange)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .accessibilityLabel("Weather refresh issue. \(weatherRefreshError)")
+                            weatherIssueBanner(weatherRefreshError)
                         }
+
+                        attributionSection
                     }
-                    .padding()
+                    .frame(maxWidth: contentMaxWidth, alignment: .leading)
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 16)
+                }
+                .scrollBounceBehavior(.basedOnSize)
+                .refreshable {
+                    await refreshWeather(for: gardenProfile)
                 }
             } else {
                 ContentUnavailableView(
@@ -55,7 +61,31 @@ struct HomeView: View {
             }
         }
         .navigationTitle("Dry Spell")
-        .navigationBarTitleDisplayMode(.inline)
+        .navigationBarTitleDisplayMode(.large)
+        .toolbar {
+            if let gardenProfile {
+                ToolbarItemGroup(placement: .topBarTrailing) {
+                    Button {
+                        Task {
+                            await refreshWeather(for: gardenProfile)
+                        }
+                    } label: {
+                        Image(systemName: "arrow.clockwise")
+                    }
+                    .disabled(isRefreshingWeather)
+                    .accessibilityLabel(isRefreshingWeather ? "Refreshing weather" : "Refresh weather")
+                    .accessibilityHint("Fetches the latest weather for your saved garden.")
+
+                    Button {
+                        isShowingSettings = true
+                    } label: {
+                        Image(systemName: "slider.horizontal.3")
+                    }
+                    .accessibilityLabel("Open settings")
+                    .accessibilityHint("Edits your saved location, threshold, reminders, and attribution.")
+                }
+            }
+        }
         .sheet(isPresented: $isShowingSettings) {
             if let gardenProfile {
                 SettingsView(
@@ -101,10 +131,25 @@ struct HomeView: View {
         let display = recommendationDisplay(for: gardenProfile)
 
         VStack(alignment: .leading, spacing: 12) {
-            Label(display.badgeTitle, systemImage: display.symbolName)
-                .font(.subheadline.weight(.semibold))
-                .foregroundStyle(display.badgeColor)
-                .accessibilityLabel(display.badgeTitle)
+            HStack(alignment: .top, spacing: 16) {
+                Label(display.badgeTitle, systemImage: display.symbolName)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(display.badgeColor)
+                    .accessibilityLabel(display.badgeTitle)
+
+                Spacer(minLength: 0)
+
+                if let weatherSnapshot {
+                    Text(updatedText(for: weatherSnapshot))
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.trailing)
+                } else if isRefreshingWeather {
+                    Label("Refreshing weather...", systemImage: "arrow.clockwise")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                }
+            }
 
             Text(display.title)
                 .font(.largeTitle.weight(.bold))
@@ -112,109 +157,6 @@ struct HomeView: View {
             Text(display.subtitle)
                 .font(.title3)
                 .foregroundStyle(.secondary)
-
-            if let weatherSnapshot {
-                Text(updatedText(for: weatherSnapshot))
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-            } else if isRefreshingWeather {
-                Label("Refreshing weather...", systemImage: "arrow.clockwise")
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-            }
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding()
-        .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
-        .accessibilityElement(children: .combine)
-    }
-
-    @ViewBuilder
-    private func metricsSection(for gardenProfile: GardenProfile) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Rain and Moisture")
-                .font(.headline)
-
-            VStack(spacing: 12) {
-                VStack(alignment: .leading, spacing: 4) {
-                    MetricRow(
-                        title: "Last Meaningful Rain",
-                        value: lastMeaningfulRainText
-                    )
-
-                    if let lastMeaningfulRainDateText {
-                        Text(lastMeaningfulRainDateText)
-                            .font(.footnote)
-                            .foregroundStyle(.secondary)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .accessibilityLabel("Last meaningful rain date, \(lastMeaningfulRainDateText)")
-                    }
-                }
-                MetricRow(
-                    title: "Observed 7-Day Rain",
-                    value: measurementText(weatherSnapshot?.observed7DayRainMM ?? 0)
-                )
-                MetricRow(
-                    title: "Forecast Next 48 Hours",
-                    value: measurementText(weatherSnapshot?.forecast48hRainMM ?? 0)
-                )
-                MetricRow(
-                    title: "Weekly Target",
-                    value: measurementText(DrySpellConstants.defaultWeeklyWaterTargetMM)
-                )
-                MetricRow(
-                    title: "Dry-Day Threshold",
-                    value: "\(gardenProfile.dryDayThresholdDays) days"
-                )
-            }
-            .padding()
-            .background(.background.secondary, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
-            .accessibilityElement(children: .contain)
-        }
-    }
-
-    private var explanationSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Recommendation")
-                .font(.headline)
-
-            Text(explanationText)
-                .foregroundStyle(.secondary)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding()
-                .background(.background.secondary, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
-                .accessibilityElement(children: .combine)
-        }
-    }
-
-    @ViewBuilder
-    private var attributionSection: some View {
-        if let weatherSnapshot, !weatherSnapshot.attributionText.isEmpty {
-            VStack(alignment: .leading, spacing: 8) {
-                Text("Weather Attribution")
-                    .font(.headline)
-
-                Text(weatherSnapshot.attributionText)
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-
-                if let attributionURL = URL(string: weatherSnapshot.attributionURLString) {
-                    Link("Open Legal Attribution", destination: attributionURL)
-                        .font(.footnote.weight(.semibold))
-                        .accessibilityHint("Opens Apple Weather attribution details.")
-                }
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding()
-            .background(.background.secondary, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
-        }
-    }
-
-    @ViewBuilder
-    private func actionsSection(for gardenProfile: GardenProfile) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Actions")
-                .font(.headline)
 
             Button {
                 Task {
@@ -225,55 +167,93 @@ struct HomeView: View {
                     if isMarkingWatered {
                         ProgressView()
                             .progressViewStyle(.circular)
-                            .tint(.white)
                     }
 
                     Text(wateredToday(for: gardenProfile) ? "Watered Today" : "Mark Watered")
                         .frame(maxWidth: .infinity)
                 }
             }
-            .buttonStyle(.borderedProminent)
+            .buttonStyle(.glassProminent)
             .controlSize(.large)
             .disabled(!canMarkWatered || wateredToday(for: gardenProfile) || isMarkingWatered)
             .accessibilityHint("Records that you've already watered today.")
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(24)
+        .background(
+            LinearGradient(
+                colors: [
+                    display.badgeColor.opacity(0.16),
+                    display.badgeColor.opacity(0.04),
+                    .clear,
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            ),
+            in: RoundedRectangle(cornerRadius: 28, style: .continuous)
+        )
+        .glassEffect(.regular.tint(display.badgeColor.opacity(0.08)), in: .rect(cornerRadius: 28))
+        .accessibilityElement(children: .contain)
+    }
 
-            ViewThatFits(in: .horizontal) {
-                HStack(spacing: 12) {
-                    secondaryActionButtons(for: gardenProfile)
-                }
+    @ViewBuilder
+    private func metricsSection(for gardenProfile: GardenProfile) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Conditions")
+                    .font(.headline)
 
-                VStack(spacing: 12) {
-                    secondaryActionButtons(for: gardenProfile)
+                Text("Observed rain, forecast, and your saved threshold.")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
+
+            GlassEffectContainer(spacing: 16) {
+                LazyVGrid(
+                    columns: [GridItem(.adaptive(minimum: 160, maximum: 240), spacing: 12, alignment: .top)],
+                    alignment: .leading,
+                    spacing: 12
+                ) {
+                    ForEach(conditionMetrics(for: gardenProfile)) { metric in
+                        ConditionMetricCard(metric: metric)
+                    }
                 }
             }
         }
     }
 
-    @ViewBuilder
-    private func secondaryActionButtons(for gardenProfile: GardenProfile) -> some View {
-        Button {
-            Task {
-                await refreshWeather(for: gardenProfile)
-            }
+    private var explanationSection: some View {
+        GroupBox {
+            Text(explanationText)
+                .foregroundStyle(.secondary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .accessibilityElement(children: .combine)
         } label: {
-            Label(
-                isRefreshingWeather ? "Refreshing..." : "Refresh Weather",
-                systemImage: "arrow.clockwise"
-            )
-            .frame(maxWidth: .infinity)
+            Text("Recommendation")
+                .font(.headline)
         }
-        .buttonStyle(.bordered)
-        .disabled(isRefreshingWeather)
-        .accessibilityHint("Fetches the latest weather for your saved garden.")
+    }
 
-        Button {
-            isShowingSettings = true
-        } label: {
-            Label("Settings", systemImage: "gearshape")
-                .frame(maxWidth: .infinity)
+    @ViewBuilder
+    private var attributionSection: some View {
+        if let weatherSnapshot, !weatherSnapshot.attributionText.isEmpty {
+            GroupBox {
+                DisclosureGroup("Weather Attribution", isExpanded: $isShowingAttributionDetails) {
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text(weatherSnapshot.attributionText)
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+
+                        if let attributionURL = URL(string: weatherSnapshot.attributionURLString) {
+                            Link("Open Legal Attribution", destination: attributionURL)
+                                .font(.footnote.weight(.semibold))
+                                .accessibilityHint("Opens Apple Weather attribution details.")
+                        }
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                }
+            }
         }
-        .buttonStyle(.bordered)
-        .accessibilityHint("Edits your saved location, threshold, reminders, and attribution.")
     }
 
     private func shouldRefreshWeatherSnapshot(currentSnapshot: WeatherSnapshot?) -> Bool {
@@ -463,6 +443,42 @@ struct HomeView: View {
         recommendationEngine.canApplyManualWatering(using: weatherSnapshot, now: .now)
     }
 
+    private func conditionMetrics(for gardenProfile: GardenProfile) -> [HomeConditionMetric] {
+        [
+            HomeConditionMetric(
+                title: "Last Meaningful Rain",
+                value: lastMeaningfulRainText,
+                detail: lastMeaningfulRainDateText,
+                symbolName: "cloud.rain",
+                tint: .blue
+            ),
+            HomeConditionMetric(
+                title: "Observed 7-Day Rain",
+                value: measurementText(weatherSnapshot?.observed7DayRainMM ?? 0),
+                symbolName: "chart.bar.xaxis",
+                tint: .teal
+            ),
+            HomeConditionMetric(
+                title: "Forecast Next 48 Hours",
+                value: measurementText(weatherSnapshot?.forecast48hRainMM ?? 0),
+                symbolName: "cloud.drizzle",
+                tint: .indigo
+            ),
+            HomeConditionMetric(
+                title: "Weekly Target",
+                value: measurementText(DrySpellConstants.defaultWeeklyWaterTargetMM),
+                symbolName: "drop.circle",
+                tint: .cyan
+            ),
+            HomeConditionMetric(
+                title: "Dry-Day Threshold",
+                value: "\(gardenProfile.dryDayThresholdDays) days",
+                symbolName: "sun.max",
+                tint: .orange
+            ),
+        ]
+    }
+
     private var lastMeaningfulRainText: String {
         guard let weatherSnapshot else {
             return "Waiting for weather"
@@ -555,6 +571,16 @@ struct HomeView: View {
         calendar.timeZone = TimeZone(identifier: timeZoneIdentifier) ?? .current
         return calendar
     }
+
+    private func weatherIssueBanner(_ message: String) -> some View {
+        Label(message, systemImage: "exclamationmark.triangle")
+            .font(.footnote)
+            .foregroundStyle(.orange)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(16)
+            .background(Color.orange.opacity(0.08), in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+            .accessibilityLabel("Weather refresh issue. \(message)")
+    }
 }
 
 private struct RecommendationDisplay {
@@ -573,6 +599,65 @@ private struct MetricRow: View {
         LabeledContent(title, value: value)
             .accessibilityElement(children: .ignore)
             .accessibilityLabel("\(title), \(value)")
+    }
+}
+
+private struct HomeConditionMetric: Identifiable {
+    let id = UUID()
+    let title: String
+    let value: String
+    let detail: String?
+    let symbolName: String
+    let tint: Color
+
+    init(title: String, value: String, detail: String? = nil, symbolName: String, tint: Color) {
+        self.title = title
+        self.value = value
+        self.detail = detail
+        self.symbolName = symbolName
+        self.tint = tint
+    }
+}
+
+private struct ConditionMetricCard: View {
+    let metric: HomeConditionMetric
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Image(systemName: metric.symbolName)
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(metric.tint)
+
+            Text(metric.title)
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.secondary)
+
+            Text(metric.value)
+                .font(.title3.weight(.semibold))
+
+            if let detail = metric.detail {
+                Text(detail)
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .frame(maxWidth: .infinity, minHeight: 92, alignment: .leading)
+        .padding(14)
+        .background(
+            LinearGradient(
+                colors: [
+                    metric.tint.opacity(0.14),
+                    metric.tint.opacity(0.04),
+                    .clear,
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            ),
+            in: RoundedRectangle(cornerRadius: 18, style: .continuous)
+        )
+        .glassEffect(.regular.tint(metric.tint.opacity(0.08)), in: .rect(cornerRadius: 18))
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel([metric.title, metric.value, metric.detail].compactMap { $0 }.joined(separator: ", "))
     }
 }
 

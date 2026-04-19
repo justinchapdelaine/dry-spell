@@ -14,19 +14,30 @@ struct OnboardingView: View {
 
     private let notificationAuthorizationService = NotificationAuthorizationService()
     private let backgroundRefreshScheduler = BackgroundRefreshScheduler()
+    private let contentMaxWidth: CGFloat = 720
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 24) {
-                ProgressView(value: Double(step.rawValue + 1), total: Double(OnboardingStep.allCases.count))
-                    .tint(.accentColor)
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("Step \(step.rawValue + 1) of \(OnboardingStep.allCases.count)")
+                        .font(.footnote.weight(.semibold))
+                        .foregroundStyle(.secondary)
+
+                    ProgressView(value: Double(step.rawValue + 1), total: Double(OnboardingStep.allCases.count))
+                        .tint(.accentColor)
+                }
 
                 currentStepView
             }
-            .padding()
+            .frame(maxWidth: contentMaxWidth, alignment: .leading)
+            .frame(maxWidth: .infinity, alignment: .center)
+            .padding(.horizontal, 20)
+            .padding(.vertical, 24)
         }
         .navigationTitle("Dry Spell")
-        .navigationBarTitleDisplayMode(.inline)
+        .navigationBarTitleDisplayMode(.large)
+        .scrollBounceBehavior(.basedOnSize)
         .alert(item: $activeAlert) { alert in
             Alert(
                 title: Text(alert.title),
@@ -189,20 +200,50 @@ private struct WelcomeStep: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
-            Text("Track rainfall for one garden location.")
-                .font(.largeTitle.weight(.bold))
+            OnboardingStepHeader(
+                eyebrow: "Welcome",
+                title: "Track rainfall for one garden location.",
+                subtitle: "Get reminded when it has been dry, unless enough rain is coming soon."
+            )
 
-            Text("Get reminded when it has been dry, unless enough rain is coming soon.")
-                .font(.title3)
-                .foregroundStyle(.secondary)
+            VStack(alignment: .leading, spacing: 16) {
+                Image(systemName: "cloud.sun.rain.fill")
+                    .font(.system(size: 32, weight: .semibold))
+                    .foregroundStyle(.tint)
 
-            Label("One saved garden location", systemImage: "leaf")
-            Label("Simple local reminders", systemImage: "bell")
-            Label("A small widget for quick status", systemImage: "square.grid.2x2")
+                VStack(alignment: .leading, spacing: 12) {
+                    OnboardingFeatureRow(
+                        systemImage: "leaf",
+                        title: "One saved garden location",
+                        subtitle: "Keep the app focused on one garden in v1."
+                    )
+                    OnboardingFeatureRow(
+                        systemImage: "bell.badge",
+                        title: "Simple local reminders",
+                        subtitle: "Only when fresh weather supports watering."
+                    )
+                    OnboardingFeatureRow(
+                        systemImage: "square.grid.2x2",
+                        title: "A quick widget",
+                        subtitle: "See your current status without opening the app."
+                    )
+                }
+            }
+            .padding(24)
+            .background(
+                LinearGradient(
+                    colors: [.green.opacity(0.16), .blue.opacity(0.06), .clear],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                ),
+                in: RoundedRectangle(cornerRadius: 28, style: .continuous)
+            )
+            .glassEffect(.regular.tint(.green.opacity(0.08)), in: .rect(cornerRadius: 28))
 
             Button("Set Up Garden", action: onContinue)
-                .buttonStyle(.borderedProminent)
-                .padding(.top, 8)
+                .buttonStyle(.glassProminent)
+                .controlSize(.large)
+                .padding(.top, 4)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
@@ -217,22 +258,36 @@ private struct LocationSearchStep: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
-            Text("Choose your garden location")
-                .font(.title.bold())
+            OnboardingStepHeader(
+                eyebrow: "Location",
+                title: "Choose your garden location",
+                subtitle: "Search by address, neighborhood, or place name, then review the closest match before continuing. Dry Spell uses one saved location in v1 and never asks for live location permission."
+            )
 
-            Text("Search by address, neighborhood, or place name. Dry Spell uses one saved location in v1 and never asks for live location permission.")
-                .foregroundStyle(.secondary)
+            HStack(spacing: 12) {
+                Image(systemName: "magnifyingglass")
+                    .font(.body.weight(.semibold))
+                    .foregroundStyle(.secondary)
+                    .frame(width: 18, height: 18)
 
-            TextField("Search for a location", text: $locationSearch.query)
-                .textInputAutocapitalization(.words)
-                .autocorrectionDisabled()
-                .padding(12)
-                .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 12))
+                TextField("Search for a location", text: $locationSearch.query)
+                    .textInputAutocapitalization(.words)
+                    .autocorrectionDisabled()
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 15)
+            .background(
+                Color(uiColor: .secondarySystemGroupedBackground),
+                in: RoundedRectangle(cornerRadius: 18, style: .continuous)
+            )
+            .overlay {
+                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    .strokeBorder(.white.opacity(0.45), lineWidth: 1)
+            }
+            .glassEffect(.regular.tint(.white.opacity(0.08)).interactive(), in: .rect(cornerRadius: 18))
 
             if isResolvingLocation {
                 ProgressView("Loading location details...")
-            } else if locationSearch.isSearching {
-                ProgressView("Searching...")
             }
 
             if let errorMessage = locationSearch.errorMessage {
@@ -252,30 +307,21 @@ private struct LocationSearchStep: View {
                         Button {
                             onSelectSuggestion(suggestion)
                         } label: {
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text(suggestion.title)
-                                    .font(.headline)
-                                    .foregroundStyle(.primary)
-
-                                if !suggestion.subtitle.isEmpty {
-                                    Text(suggestion.subtitle)
-                                        .font(.subheadline)
-                                        .foregroundStyle(.secondary)
-                                }
-                            }
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding()
-                            .background(.background.secondary, in: RoundedRectangle(cornerRadius: 14))
+                            OnboardingLocationSuggestionCard(suggestion: suggestion)
                         }
                         .buttonStyle(.plain)
                         .disabled(isResolvingLocation)
                     }
                 }
+
+                Text("Choose the closest match, then review it before continuing.")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
             }
 
             Button("Back", action: onBack)
-                .buttonStyle(.bordered)
-                .padding(.top, 8)
+                .buttonStyle(.glass)
+                .padding(.top, 4)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
@@ -288,20 +334,14 @@ private struct ConfirmLocationStep: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
-            Text("Confirm this location")
-                .font(.title.bold())
+            OnboardingStepHeader(
+                eyebrow: "Confirm",
+                title: "Confirm this location",
+                subtitle: "Review the selected result below before saving it as your garden location."
+            )
 
             if let location {
-                VStack(alignment: .leading, spacing: 12) {
-                    LabeledContent("Location", value: location.displayName)
-                    LabeledContent("Time Zone", value: location.timeZoneIdentifier)
-                    LabeledContent(
-                        "Coordinates",
-                        value: "\(location.latitude.formatted(.number.precision(.fractionLength(4)))), \(location.longitude.formatted(.number.precision(.fractionLength(4))))"
-                    )
-                }
-                .padding()
-                .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 16))
+                OnboardingLocationSummaryCard(location: location)
             } else {
                 ContentUnavailableView(
                     "No Location Selected",
@@ -310,13 +350,24 @@ private struct ConfirmLocationStep: View {
                 )
             }
 
-            HStack(spacing: 12) {
-                Button("Back", action: onBack)
-                    .buttonStyle(.bordered)
+            ViewThatFits(in: .horizontal) {
+                HStack(spacing: 12) {
+                    Button("Back", action: onBack)
+                        .buttonStyle(.glass)
 
-                Button("Continue", action: onContinue)
-                    .buttonStyle(.borderedProminent)
-                    .disabled(location == nil)
+                    Button("Continue", action: onContinue)
+                        .buttonStyle(.glassProminent)
+                        .disabled(location == nil)
+                }
+
+                VStack(spacing: 12) {
+                    Button("Continue", action: onContinue)
+                        .buttonStyle(.glassProminent)
+                        .disabled(location == nil)
+
+                    Button("Back", action: onBack)
+                        .buttonStyle(.glass)
+                }
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -331,28 +382,60 @@ private struct DryDayThresholdStep: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
-            Text("Choose a dry-day threshold")
-                .font(.title.bold())
+            OnboardingStepHeader(
+                eyebrow: "Threshold",
+                title: "Choose a dry-day threshold",
+                subtitle: "Dry Spell can remind you after 3, 5, or 7 dry days. The default is 5."
+            )
 
-            Text("Dry Spell can remind you after 3, 5, or 7 dry days. The default is 5.")
-                .foregroundStyle(.secondary)
-
-            Picker("Dry-Day Threshold", selection: $dryDayThresholdDays) {
-                ForEach(DrySpellConstants.allowedDryDayThresholds, id: \.self) { days in
-                    Text("\(days) days").tag(days)
+            VStack(alignment: .leading, spacing: 16) {
+                Picker("Dry-Day Threshold", selection: $dryDayThresholdDays) {
+                    ForEach(DrySpellConstants.allowedDryDayThresholds, id: \.self) { days in
+                        Text("\(days) days").tag(days)
+                    }
                 }
+                .pickerStyle(.segmented)
+
+                Text(thresholdSummary)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
             }
-            .pickerStyle(.segmented)
+            .padding(20)
+            .background(
+                Color(uiColor: .secondarySystemGroupedBackground),
+                in: RoundedRectangle(cornerRadius: 24, style: .continuous)
+            )
 
-            HStack(spacing: 12) {
-                Button("Back", action: onBack)
-                    .buttonStyle(.bordered)
+            ViewThatFits(in: .horizontal) {
+                HStack(spacing: 12) {
+                    Button("Back", action: onBack)
+                        .buttonStyle(.glass)
 
-                Button("Continue", action: onContinue)
-                    .buttonStyle(.borderedProminent)
+                    Button("Continue", action: onContinue)
+                        .buttonStyle(.glassProminent)
+                }
+
+                VStack(spacing: 12) {
+                    Button("Continue", action: onContinue)
+                        .buttonStyle(.glassProminent)
+
+                    Button("Back", action: onBack)
+                        .buttonStyle(.glass)
+                }
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private var thresholdSummary: String {
+        switch dryDayThresholdDays {
+        case 3:
+            return "A 3-day threshold makes reminders more proactive after short dry stretches."
+        case 7:
+            return "A 7-day threshold is more conservative and waits for longer dry periods."
+        default:
+            return "A 5-day threshold balances recent dry weather with a conservative reminder cadence."
+        }
     }
 }
 
@@ -364,31 +447,182 @@ private struct ReminderOptInStep: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
-            Text("Turn on reminders?")
-                .font(.title.bold())
+            OnboardingStepHeader(
+                eyebrow: "Reminders",
+                title: "Turn on reminders?",
+                subtitle: "Dry Spell can send local reminders at 9:00 AM when conditions support watering. It won’t schedule reminders without fresh weather data."
+            )
 
-            Text("Dry Spell can send local reminders at 9:00 AM when conditions support watering. It won’t schedule reminders without fresh weather data.")
-                .foregroundStyle(.secondary)
+            VStack(alignment: .leading, spacing: 12) {
+                OnboardingFeatureRow(
+                    systemImage: "clock.badge.checkmark",
+                    title: "9:00 AM local reminder time",
+                    subtitle: "You can change this later in Settings."
+                )
+                OnboardingFeatureRow(
+                    systemImage: "icloud.slash",
+                    title: "Fresh weather required",
+                    subtitle: "Dry Spell won’t create new reminders from stale or unavailable weather."
+                )
+            }
+            .padding(20)
+            .background(
+                LinearGradient(
+                    colors: [.orange.opacity(0.12), .yellow.opacity(0.06), .clear],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                ),
+                in: RoundedRectangle(cornerRadius: 24, style: .continuous)
+            )
+            .glassEffect(.regular.tint(.orange.opacity(0.06)), in: .rect(cornerRadius: 24))
 
             if isSaving {
                 ProgressView("Saving setup...")
             }
 
-            HStack(spacing: 12) {
-                Button("Back", action: onBack)
-                    .buttonStyle(.bordered)
-                    .disabled(isSaving)
+            ViewThatFits(in: .horizontal) {
+                HStack(spacing: 12) {
+                    Button("Back", action: onBack)
+                        .buttonStyle(.glass)
+                        .disabled(isSaving)
 
-                Button("Skip for Now", action: onSkip)
-                    .buttonStyle(.bordered)
-                    .disabled(isSaving)
+                    Button("Skip for Now", action: onSkip)
+                        .buttonStyle(.glass)
+                        .disabled(isSaving)
 
-                Button("Enable Reminders", action: onEnableReminders)
-                    .buttonStyle(.borderedProminent)
-                    .disabled(isSaving)
+                    Button("Enable Reminders", action: onEnableReminders)
+                        .buttonStyle(.glassProminent)
+                        .disabled(isSaving)
+                }
+
+                VStack(spacing: 12) {
+                    Button("Enable Reminders", action: onEnableReminders)
+                        .buttonStyle(.glassProminent)
+                        .disabled(isSaving)
+
+                    Button("Skip for Now", action: onSkip)
+                        .buttonStyle(.glass)
+                        .disabled(isSaving)
+
+                    Button("Back", action: onBack)
+                        .buttonStyle(.glass)
+                        .disabled(isSaving)
+                }
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
+    }
+}
+
+private struct OnboardingStepHeader: View {
+    let eyebrow: String
+    let title: String
+    let subtitle: String
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text(eyebrow.uppercased())
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.secondary)
+
+            Text(title)
+                .font(.largeTitle.weight(.bold))
+
+            Text(subtitle)
+                .font(.title3)
+                .foregroundStyle(.secondary)
+        }
+    }
+}
+
+private struct OnboardingFeatureRow: View {
+    let systemImage: String
+    let title: String
+    let subtitle: String
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 12) {
+            Image(systemName: systemImage)
+                .font(.body.weight(.semibold))
+                .foregroundStyle(.tint)
+                .frame(width: 24)
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text(title)
+                    .font(.headline)
+
+                Text(subtitle)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+}
+
+private struct OnboardingLocationSuggestionCard: View {
+    let suggestion: LocationSuggestion
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 12) {
+            Image(systemName: "mappin.and.ellipse")
+                .font(.body.weight(.semibold))
+                .foregroundStyle(.tint)
+                .frame(width: 24)
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text(suggestion.title)
+                    .font(.headline)
+                    .foregroundStyle(.primary)
+
+                if !suggestion.subtitle.isEmpty {
+                    Text(suggestion.subtitle)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+            }
+
+            Spacer(minLength: 0)
+
+            Image(systemName: "chevron.right")
+                .font(.footnote.weight(.semibold))
+                .foregroundStyle(.tertiary)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding()
+        .background(
+            Color(uiColor: .secondarySystemGroupedBackground),
+            in: RoundedRectangle(cornerRadius: 18, style: .continuous)
+        )
+    }
+}
+
+private struct OnboardingLocationSummaryCard: View {
+    let location: ResolvedGardenLocation
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Label("Selected Result", systemImage: "checkmark.circle.fill")
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(.blue)
+
+            LabeledContent("Location", value: location.displayName)
+            LabeledContent("Time Zone", value: location.timeZoneIdentifier)
+            LabeledContent(
+                "Coordinates",
+                value: "\(location.latitude.formatted(.number.precision(.fractionLength(4)))), \(location.longitude.formatted(.number.precision(.fractionLength(4))))"
+            )
+        }
+        .padding(20)
+        .background(
+            LinearGradient(
+                colors: [.blue.opacity(0.12), .mint.opacity(0.06), .clear],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            ),
+            in: RoundedRectangle(cornerRadius: 24, style: .continuous)
+        )
+        .glassEffect(.regular.tint(.blue.opacity(0.08)), in: .rect(cornerRadius: 24))
     }
 }
 

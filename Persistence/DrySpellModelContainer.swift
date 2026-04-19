@@ -21,17 +21,9 @@ enum DrySpellModelContainer {
         do {
             return try ModelContainer(for: schema, configurations: [configuration])
         } catch {
-            guard !inMemory else {
-                fatalError("Unable to create ModelContainer: \(error)")
-            }
-
-            do {
-                try removePersistentStoreArtifacts(at: persistentStoreURL())
-                let recoveredConfiguration = makeConfiguration(inMemory: false)
-                return try ModelContainer(for: schema, configurations: [recoveredConfiguration])
-            } catch {
-                fatalError("Unable to create ModelContainer: \(error)")
-            }
+            let containerKind = inMemory ? "in-memory" : "persistent"
+            let storeDescription = inMemory ? "preview container" : persistentStoreURL().path()
+            fatalError("Unable to create \(containerKind) ModelContainer for \(storeDescription): \(error)")
         }
     }
 
@@ -59,19 +51,6 @@ enum DrySpellModelContainer {
         return applicationSupportURL
             .appending(path: "DrySpell", directoryHint: .isDirectory)
             .appending(path: "DrySpell.store")
-    }
-
-    private static func removePersistentStoreArtifacts(at storeURL: URL) throws {
-        let fileManager = FileManager.default
-        let companionURLs = [
-            storeURL,
-            storeURL.appendingPathExtension("shm"),
-            storeURL.appendingPathExtension("wal"),
-        ]
-
-        for url in companionURLs where fileManager.fileExists(atPath: url.path()) {
-            try fileManager.removeItem(at: url)
-        }
     }
 }
 

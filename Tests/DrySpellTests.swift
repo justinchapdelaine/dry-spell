@@ -651,7 +651,7 @@ struct DrySpellTests {
         let addedRequests = await centerClient.addedRequests
         let request = try #require(addedRequests.first)
 
-        #expect(removed == [[DrySpellConstants.wateringReminderIdentifier]])
+        #expect(removed.isEmpty)
         #expect(addedRequests.count == 1)
         #expect(request.identifier == DrySpellConstants.wateringReminderIdentifier)
         #expect(request.title == "Water soon")
@@ -788,19 +788,100 @@ struct DrySpellTests {
         #expect(await centerClient.removedIdentifiers == [[DrySpellConstants.wateringReminderIdentifier]])
     }
 
+    @Test
+    func notificationAuthorizationServiceReturnsDeniedWithoutPromptingAgain() async throws {
+        let centerClient = NotificationCenterClientSpy(
+            authorizationStatus: .denied,
+            requestAuthorizationResult: true
+        )
+        let service = NotificationAuthorizationService(centerClient: centerClient)
+
+        let permissionState = try await service.resolvePermissionStateForReminders()
+
+        #expect(permissionState == .denied)
+        #expect(await centerClient.requestAuthorizationCallCount == 0)
+    }
+
+    @Test
+    func notificationAuthorizationServiceRequestsAccessWhenStatusIsUndetermined() async throws {
+        let centerClient = NotificationCenterClientSpy(
+            authorizationStatus: .notDetermined,
+            requestAuthorizationResult: true
+        )
+        let service = NotificationAuthorizationService(centerClient: centerClient)
+
+        let permissionState = try await service.resolvePermissionStateForReminders()
+
+        #expect(permissionState == .allowed)
+        #expect(await centerClient.requestAuthorizationCallCount == 1)
+    }
+
+    @Test
+    func notificationSchedulerKeepsExistingReminderIfReplacementFails() async throws {
+        let centerClient = NotificationCenterClientSpy(
+            authorizationStatus: .authorized,
+            addError: NotificationCenterClientSpyError.addFailed
+        )
+        let scheduler = NotificationScheduler(centerClient: centerClient)
+        let now = Date(timeIntervalSince1970: 1_713_429_000)
+        let profile = GardenProfile(
+            displayName: "Back Garden",
+            latitude: 49.2827,
+            longitude: -123.1207,
+            timeZoneIdentifier: "America/Vancouver",
+            dryDayThresholdDays: 5,
+            notificationsEnabled: true,
+            notificationHour: 9
+        )
+        let snapshot = WeatherSnapshot(
+            fetchedAt: now,
+            observed7DayRainMM: 8,
+            forecast48hRainMM: 0,
+            dryDays: 5
+        )
+
+        await #expect(throws: NotificationCenterClientSpyError.addFailed) {
+            try await scheduler.syncReminder(
+                gardenProfile: profile,
+                weatherSnapshot: snapshot,
+                manualWaterEvents: [],
+                now: now
+            )
+        }
+
+        #expect(await centerClient.removedIdentifiers.isEmpty)
+        #expect(await centerClient.addedRequests.isEmpty)
+        #expect(await centerClient.addCallCount == 1)
+    }
+
+}
+
+private enum NotificationCenterClientSpyError: Error {
+    case addFailed
 }
 
 private actor NotificationCenterClientSpy: UserNotificationCenterClient {
     private(set) var addedRequests: [ScheduledNotificationRequest] = []
     private(set) var removedIdentifiers: [[String]] = []
     private let status: UNAuthorizationStatus
+    private let requestAuthorizationResult: Bool
+    private let addError: Error?
+    private(set) var requestAuthorizationCallCount = 0
+    private(set) var addCallCount = 0
 
-    init(authorizationStatus: UNAuthorizationStatus) {
+    init(
+        authorizationStatus: UNAuthorizationStatus,
+        requestAuthorizationResult: Bool = true,
+        addError: Error? = nil
+    ) {
         self.status = authorizationStatus
+        self.requestAuthorizationResult = requestAuthorizationResult
+        self.addError = addError
     }
 
     func requestAuthorization(options: UNAuthorizationOptions) async throws -> Bool {
-        status == .authorized
+        requestAuthorizationCallCount += 1
+        return requestAuthorizationResult
     }
 
     func authorizationStatus() async -> UNAuthorizationStatus {
@@ -808,6 +889,10 @@ private actor NotificationCenterClientSpy: UserNotificationCenterClient {
     }
 
     func add(_ request: ScheduledNotificationRequest) async throws {
+        addCallCount += 1
+        if let addError {
+            throw addError
+        }
         addedRequests.append(request)
     }
 

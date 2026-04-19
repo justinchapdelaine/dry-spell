@@ -63,13 +63,16 @@ private struct WidgetSnapshotReader {
     func read() -> WidgetSnapshotPayload? {
         guard
             let containerURL = fileManager.containerURL(
-                forSecurityApplicationGroupIdentifier: "group.com.justinchapdelaine.dryspell"
+                forSecurityApplicationGroupIdentifier: DrySpellConstants.appGroupIdentifier
             )
         else {
             return nil
         }
 
-        let fileURL = containerURL.appending(path: "widget-snapshot.json", directoryHint: .notDirectory)
+        let fileURL = containerURL.appending(
+            path: DrySpellConstants.widgetSnapshotFilename,
+            directoryHint: .notDirectory
+        )
 
         guard fileManager.fileExists(atPath: fileURL.path()) else {
             return nil

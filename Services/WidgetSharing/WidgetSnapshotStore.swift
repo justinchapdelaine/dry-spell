@@ -15,8 +15,9 @@ struct WidgetSnapshotStore {
     init(
         fileManager: FileManager = .default,
         containerURLProvider: @escaping @Sendable () -> URL? = {
-            let appGroupIdentifier = "group.com.justinchapdelaine.dryspell"
-            return FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: appGroupIdentifier)
+            FileManager.default.containerURL(
+                forSecurityApplicationGroupIdentifier: DrySpellConstants.appGroupIdentifier
+            )
         },
         reloadTimelines: @escaping @Sendable () -> Void = {
             WidgetCenter.shared.reloadAllTimelines()

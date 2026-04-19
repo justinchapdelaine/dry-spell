@@ -15,6 +15,7 @@ struct SettingsView: View {
     @State private var isShowingLocationPicker = false
     @State private var isSaving = false
     @State private var activeAlert: SettingsAlert?
+    @State private var notificationPermissionState: NotificationPermissionState = .unknown
 
     private let notificationAuthorizationService = NotificationAuthorizationService()
     private let notificationScheduler = NotificationScheduler()
@@ -148,6 +149,9 @@ struct SettingsView: View {
                 dismissButton: .default(Text("OK"))
             )
         }
+        .task {
+            await refreshNotificationPermissionState()
+        }
     }
 
     @MainActor
@@ -156,16 +160,15 @@ struct SettingsView: View {
         defer { isSaving = false }
 
         do {
-            let shouldEnableNotifications = notificationsEnabled && !gardenProfile.notificationsEnabled
+            if notificationsEnabled {
+                let permissionState = try await notificationAuthorizationService.resolvePermissionStateForReminders()
+                notificationPermissionState = permissionState
 
-            if shouldEnableNotifications {
-                let granted = try await notificationAuthorizationService.requestAuthorization()
-
-                if !granted {
+                if permissionState != .allowed {
                     notificationsEnabled = false
                     activeAlert = SettingsAlert(
                         title: "Notifications Stay Off",
-                        message: "Dry Spell couldn't enable reminders. Your other changes are still on screen, and you can save them after this alert."
+                        message: reminderPermissionMessage(for: permissionState)
                     )
                     return
                 }
@@ -235,11 +238,31 @@ struct SettingsView: View {
     }
 
     private var reminderSummary: String {
+        if notificationsEnabled && notificationPermissionState == .denied {
+            return "Notifications are turned off in iPhone Settings, so Dry Spell can't schedule reminders right now. Turn notifications back on there, then save again."
+        }
+
         if notificationsEnabled {
             return "Dry Spell will consider reminders at \(Self.reminderHourLabel(for: notificationHour)) and only uses fresh weather data when deciding whether a reminder is eligible."
         }
 
         return "Reminders are off. Dry Spell only schedules new reminders when fresh weather supports watering."
+    }
+
+    @MainActor
+    private func refreshNotificationPermissionState() async {
+        notificationPermissionState = await notificationAuthorizationService.permissionState()
+    }
+
+    private func reminderPermissionMessage(for permissionState: NotificationPermissionState) -> String {
+        switch permissionState {
+        case .denied:
+            return "Dry Spell can't enable reminders because notification permission is turned off in iPhone Settings. Your other changes are still on screen, and you can save them after this alert."
+        case .notDetermined, .unknown:
+            return "Dry Spell couldn't confirm notification access. Your other changes are still on screen, and you can save them after this alert."
+        case .allowed:
+            return "Dry Spell is ready to schedule reminders."
+        }
     }
 
     private static func reminderHourLabel(for hour: Int) -> String {

@@ -1,6 +1,13 @@
 import Foundation
 import UserNotifications
 
+enum NotificationPermissionState: Sendable {
+    case unknown
+    case allowed
+    case notDetermined
+    case denied
+}
+
 struct ScheduledNotificationRequest: Sendable {
     let identifier: String
     let title: String
@@ -76,6 +83,32 @@ struct NotificationAuthorizationService {
     func requestAuthorization() async throws -> Bool {
         try await centerClient.requestAuthorization(options: [.alert, .badge, .sound])
     }
+
+    func permissionState() async -> NotificationPermissionState {
+        switch await centerClient.authorizationStatus() {
+        case .authorized, .provisional, .ephemeral:
+            return .allowed
+        case .notDetermined:
+            return .notDetermined
+        case .denied:
+            return .denied
+        @unknown default:
+            return .unknown
+        }
+    }
+
+    func resolvePermissionStateForReminders() async throws -> NotificationPermissionState {
+        let currentState = await permissionState()
+
+        switch currentState {
+        case .allowed, .denied:
+            return currentState
+        case .notDetermined:
+            return try await requestAuthorization() ? .allowed : .denied
+        case .unknown:
+            return .denied
+        }
+    }
 }
 
 struct NotificationScheduler {
@@ -96,15 +129,15 @@ struct NotificationScheduler {
         manualWaterEvents: [ManualWaterEvent],
         now: Date = .now
     ) async throws {
-        await cancelReminder()
-
         guard let gardenProfile, gardenProfile.notificationsEnabled else {
+            await cancelReminder()
             return
         }
 
         let authorizationStatus = await centerClient.authorizationStatus()
 
         guard authorizationStatus.allowsScheduling else {
+            await cancelReminder()
             return
         }
 
@@ -120,9 +153,12 @@ struct NotificationScheduler {
         guard recommendation.status == .waterSoon,
               recommendation.freshness == .fresh,
               !recommendation.isUnavailable else {
+            await cancelReminder()
             return
         }
 
+        // Reusing the same identifier lets the notification center replace the
+        // pending reminder atomically instead of dropping it before the add succeeds.
         try await centerClient.add(
             ScheduledNotificationRequest(
                 identifier: DrySpellConstants.wateringReminderIdentifier,

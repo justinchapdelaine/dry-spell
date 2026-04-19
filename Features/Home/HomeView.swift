@@ -282,7 +282,6 @@ struct HomeView: View {
             try store.writeWidgetSnapshot(now: snapshot.fetchedAt)
             backgroundRefreshScheduler.submitNextRefresh()
         } catch {
-            await notificationScheduler.cancelReminder()
             let store = DrySpellStore(modelContext: modelContext)
             _ = try? store.reevaluateWeatherSnapshot(
                 for: gardenProfile,
@@ -290,6 +289,7 @@ struct HomeView: View {
                 now: .now
             )
             try? store.writeWidgetSnapshot(now: .now)
+            try? await syncReminders(using: store, now: .now)
             weatherRefreshError = "Couldn't refresh weather right now. Dry Spell is showing the last known status if it's still usable."
             return
         }

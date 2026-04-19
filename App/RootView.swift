@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import OSLog
 
 struct RootView: View {
     var body: some View {
@@ -10,6 +11,10 @@ struct RootView: View {
 }
 
 private struct RootContentView: View {
+    private static let logger = Logger(
+        subsystem: "com.justinchapdelaine.dryspell",
+        category: "RootView"
+    )
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \GardenProfile.createdAt) private var gardenProfiles: [GardenProfile]
 
@@ -23,7 +28,11 @@ private struct RootContentView: View {
         }
         .task(id: gardenProfiles.first?.updatedAt) {
             let store = DrySpellStore(modelContext: modelContext)
-            try? store.writeWidgetSnapshot(now: .now)
+            do {
+                try store.writeWidgetSnapshot(now: .now)
+            } catch {
+                Self.logger.error("Failed to sync widget snapshot from root view: \(error.localizedDescription, privacy: .public)")
+            }
         }
     }
 }

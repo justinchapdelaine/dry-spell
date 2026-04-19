@@ -1,15 +1,19 @@
 import BackgroundTasks
 import Foundation
+import OSLog
 import SwiftData
 
 protocol BackgroundRefreshScheduling {
     func submit(_ request: BGTaskRequest) throws
-    func cancel(taskRequestWithIdentifier identifier: String)
 }
 
 extension BGTaskScheduler: BackgroundRefreshScheduling {}
 
 struct BackgroundRefreshScheduler {
+    private static let logger = Logger(
+        subsystem: "com.justinchapdelaine.dryspell",
+        category: "BackgroundRefresh"
+    )
     private let scheduler: BackgroundRefreshScheduling
     private let weatherClient: WeatherClient
     private let notificationScheduler: NotificationScheduler
@@ -30,11 +34,10 @@ struct BackgroundRefreshScheduler {
         let request = BGAppRefreshTaskRequest(identifier: DrySpellConstants.backgroundRefreshTaskIdentifier)
         request.earliestBeginDate = Date().addingTimeInterval(interval)
 
-        scheduler.cancel(taskRequestWithIdentifier: DrySpellConstants.backgroundRefreshTaskIdentifier)
-
         do {
             try scheduler.submit(request)
         } catch {
+            Self.logger.error("Failed to submit background refresh request: \(error.localizedDescription, privacy: .public)")
             return
         }
     }
@@ -55,7 +58,11 @@ struct BackgroundRefreshScheduler {
             let appState = try store.loadAppState()
 
             guard let gardenProfile = appState.gardenProfile else {
-                try? store.writeWidgetSnapshot(now: now)
+                do {
+                    try store.writeWidgetSnapshot(now: now)
+                } catch {
+                    Self.logger.error("Failed to write widget snapshot during background refresh with no garden profile: \(error.localizedDescription, privacy: .public)")
+                }
                 await notificationScheduler.cancelReminder()
                 return
             }
@@ -68,23 +75,37 @@ struct BackgroundRefreshScheduler {
                 )
                 _ = try store.saveWeatherSnapshot(refreshedSnapshot)
             } catch {
-                _ = try? store.reevaluateWeatherSnapshot(
-                    for: gardenProfile,
-                    recommendationEngine: RecommendationEngine(),
-                    now: now
-                )
+                Self.logger.error("Background weather refresh failed; attempting fallback reevaluation: \(error.localizedDescription, privacy: .public)")
+                do {
+                    _ = try store.reevaluateWeatherSnapshot(
+                        for: gardenProfile,
+                        recommendationEngine: RecommendationEngine(),
+                        now: now
+                    )
+                } catch {
+                    Self.logger.error("Background fallback reevaluation failed: \(error.localizedDescription, privacy: .public)")
+                }
             }
 
-            try? store.writeWidgetSnapshot(now: now)
+            do {
+                try store.writeWidgetSnapshot(now: now)
+            } catch {
+                Self.logger.error("Failed to write widget snapshot during background refresh: \(error.localizedDescription, privacy: .public)")
+            }
 
             let refreshedState = try store.loadAppState()
-            try? await notificationScheduler.syncReminder(
-                gardenProfile: refreshedState.gardenProfile,
-                weatherSnapshot: refreshedState.weatherSnapshot,
-                manualWaterEvents: refreshedState.manualWaterEvents,
-                now: now
-            )
+            do {
+                try await notificationScheduler.syncReminder(
+                    gardenProfile: refreshedState.gardenProfile,
+                    weatherSnapshot: refreshedState.weatherSnapshot,
+                    manualWaterEvents: refreshedState.manualWaterEvents,
+                    now: now
+                )
+            } catch {
+                Self.logger.error("Failed to sync reminders during background refresh: \(error.localizedDescription, privacy: .public)")
+            }
         } catch {
+            Self.logger.error("Background refresh aborted because app state could not be loaded: \(error.localizedDescription, privacy: .public)")
             return
         }
     }

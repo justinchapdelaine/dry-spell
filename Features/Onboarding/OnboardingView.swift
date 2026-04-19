@@ -159,7 +159,7 @@ struct OnboardingView: View {
 
         do {
             let store = DrySpellStore(modelContext: modelContext)
-            _ = try store.saveGardenProfile(
+            _ = try store.saveInitialGardenProfileAndWidgetSnapshot(
                 GardenProfile(
                     displayName: selectedLocation.displayName,
                     latitude: selectedLocation.latitude,
@@ -168,9 +168,9 @@ struct OnboardingView: View {
                     dryDayThresholdDays: dryDayThresholdDays,
                     notificationsEnabled: notificationsEnabled,
                     notificationHour: DrySpellConstants.defaultNotificationHour
-                )
+                ),
+                now: .now
             )
-            try store.writeWidgetSnapshot(now: .now)
             backgroundRefreshScheduler.submitNextRefresh()
         } catch {
             activeAlert = OnboardingAlert(

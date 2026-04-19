@@ -92,29 +92,9 @@ struct DrySpellStore {
 
     @discardableResult
     func saveGardenProfile(_ profile: GardenProfile) throws -> GardenProfile {
-        let profiles = try modelContext.fetch(FetchDescriptor<GardenProfile>())
-
-        if let existing = profiles.first {
-            existing.displayName = profile.displayName
-            existing.latitude = profile.latitude
-            existing.longitude = profile.longitude
-            existing.timeZoneIdentifier = profile.timeZoneIdentifier
-            existing.dryDayThresholdDays = profile.dryDayThresholdDays
-            existing.notificationsEnabled = profile.notificationsEnabled
-            existing.notificationHour = profile.notificationHour
-            existing.updatedAt = profile.updatedAt
-
-            for duplicate in profiles.dropFirst() {
-                modelContext.delete(duplicate)
-            }
-
-            try saveChangesIfNeeded()
-            return existing
-        }
-
-        modelContext.insert(profile)
+        let savedProfile = try upsertGardenProfile(profile)
         try saveChangesIfNeeded()
-        return profile
+        return savedProfile
     }
 
     func loadLatestWeatherSnapshot() throws -> WeatherSnapshot? {
@@ -127,15 +107,9 @@ struct DrySpellStore {
 
     @discardableResult
     func saveWeatherSnapshot(_ snapshot: WeatherSnapshot) throws -> WeatherSnapshot {
-        let snapshots = try modelContext.fetch(FetchDescriptor<WeatherSnapshot>())
-
-        for existing in snapshots {
-            modelContext.delete(existing)
-        }
-
-        modelContext.insert(snapshot)
+        let savedSnapshot = try replaceWeatherSnapshot(snapshot)
         try saveChangesIfNeeded()
-        return snapshot
+        return savedSnapshot
     }
 
     func loadManualWaterEvents() throws -> [ManualWaterEvent] {
@@ -156,28 +130,35 @@ struct DrySpellStore {
         for gardenProfile: GardenProfile,
         weatherSnapshot: WeatherSnapshot,
         recommendationEngine: RecommendationEngine,
+        beforeCommit: (() throws -> Void)? = nil,
         now: Date = .now
     ) throws {
         let currentDeficit = min(
             DrySpellConstants.defaultWeeklyWaterTargetMM,
             max(0, weatherSnapshot.deficitMM)
         )
-        _ = try saveManualWaterEvent(
-            ManualWaterEvent(
-                occurredAt: now,
-                creditedMM: currentDeficit
-            )
+        let existingManualWaterEvents = try loadManualWaterEvents()
+        let manualWaterEvent = ManualWaterEvent(
+            occurredAt: now,
+            creditedMM: currentDeficit
         )
+        modelContext.insert(manualWaterEvent)
 
-        let updatedManualWaterEvents = try loadManualWaterEvents()
-        let reevaluatedSnapshot = recommendationEngine.evaluatedSnapshot(
-            gardenProfile: gardenProfile,
-            weatherSnapshot: weatherSnapshot,
-            manualWaterEvents: updatedManualWaterEvents,
-            now: now,
-            calendar: calendar(for: gardenProfile.timeZoneIdentifier)
-        )
-        _ = try saveWeatherSnapshot(reevaluatedSnapshot)
+        do {
+            let reevaluatedSnapshot = recommendationEngine.evaluatedSnapshot(
+                gardenProfile: gardenProfile,
+                weatherSnapshot: weatherSnapshot,
+                manualWaterEvents: [manualWaterEvent] + existingManualWaterEvents,
+                now: now,
+                calendar: calendar(for: gardenProfile.timeZoneIdentifier)
+            )
+            _ = try replaceWeatherSnapshot(reevaluatedSnapshot)
+            try beforeCommit?()
+            try saveChangesIfNeeded()
+        } catch {
+            modelContext.rollback()
+            throw error
+        }
     }
 
     @discardableResult
@@ -189,6 +170,7 @@ struct DrySpellStore {
         notificationHour: Int,
         weatherSnapshot: WeatherSnapshot?,
         recommendationEngine: RecommendationEngine,
+        beforeCommit: (() throws -> Void)? = nil,
         now: Date = .now
     ) throws -> GardenProfile {
         let locationChanged = hasLocationChanged(
@@ -196,7 +178,9 @@ struct DrySpellStore {
             location: location
         )
         let thresholdChanged = dryDayThresholdDays != existingProfile.dryDayThresholdDays
-        let savedProfile = try saveGardenProfile(
+        let currentSnapshot = try loadLatestWeatherSnapshot()
+        let manualWaterEvents = thresholdChanged && !locationChanged ? try loadManualWaterEvents() : []
+        let savedProfile = try upsertGardenProfile(
             GardenProfile(
                 id: existingProfile.id,
                 displayName: location.displayName,
@@ -211,13 +195,10 @@ struct DrySpellStore {
             )
         )
 
-        let currentSnapshot = try loadLatestWeatherSnapshot()
-
         if locationChanged {
-            try resetLocationDependentData()
+            try resetLocationDependentData(saveChanges: false)
         } else if thresholdChanged,
                   let currentSnapshot = weatherSnapshot ?? currentSnapshot {
-            let manualWaterEvents = try loadManualWaterEvents()
             let reevaluatedSnapshot = recommendationEngine.evaluatedSnapshot(
                 gardenProfile: savedProfile,
                 weatherSnapshot: currentSnapshot,
@@ -225,13 +206,45 @@ struct DrySpellStore {
                 now: now,
                 calendar: calendar(for: savedProfile.timeZoneIdentifier)
             )
-            _ = try saveWeatherSnapshot(reevaluatedSnapshot)
+            _ = try replaceWeatherSnapshot(reevaluatedSnapshot)
         }
 
+        try beforeCommit?()
+        try saveChangesIfNeeded()
         return savedProfile
     }
 
     func resetLocationDependentData() throws {
+        try resetLocationDependentData(saveChanges: true)
+    }
+
+    @discardableResult
+    func saveInitialGardenProfileAndWidgetSnapshot(
+        _ profile: GardenProfile,
+        widgetSnapshotStore: WidgetSnapshotStore? = nil,
+        now: Date = .now
+    ) throws -> GardenProfile {
+        let savedProfile = try saveGardenProfile(profile)
+        let widgetSnapshotStore = widgetSnapshotStore ?? WidgetSnapshotStore()
+
+        do {
+            try widgetSnapshotStore.writeCurrentAppState(
+                DrySpellAppState(
+                    gardenProfile: savedProfile,
+                    weatherSnapshot: nil,
+                    manualWaterEvents: []
+                ),
+                now: now
+            )
+            return savedProfile
+        } catch {
+            modelContext.delete(savedProfile)
+            try saveChangesIfNeeded()
+            throw error
+        }
+    }
+
+    private func resetLocationDependentData(saveChanges: Bool) throws {
         for snapshot in try modelContext.fetch(FetchDescriptor<WeatherSnapshot>()) {
             modelContext.delete(snapshot)
         }
@@ -240,7 +253,9 @@ struct DrySpellStore {
             modelContext.delete(event)
         }
 
-        try saveChangesIfNeeded()
+        if saveChanges {
+            try saveChangesIfNeeded()
+        }
     }
 
     func writeWidgetSnapshot(
@@ -276,6 +291,41 @@ struct DrySpellStore {
         if modelContext.hasChanges {
             try modelContext.save()
         }
+    }
+
+    private func upsertGardenProfile(_ profile: GardenProfile) throws -> GardenProfile {
+        let profiles = try modelContext.fetch(FetchDescriptor<GardenProfile>())
+
+        if let existing = profiles.first {
+            existing.displayName = profile.displayName
+            existing.latitude = profile.latitude
+            existing.longitude = profile.longitude
+            existing.timeZoneIdentifier = profile.timeZoneIdentifier
+            existing.dryDayThresholdDays = profile.dryDayThresholdDays
+            existing.notificationsEnabled = profile.notificationsEnabled
+            existing.notificationHour = profile.notificationHour
+            existing.updatedAt = profile.updatedAt
+
+            for duplicate in profiles.dropFirst() {
+                modelContext.delete(duplicate)
+            }
+
+            return existing
+        }
+
+        modelContext.insert(profile)
+        return profile
+    }
+
+    private func replaceWeatherSnapshot(_ snapshot: WeatherSnapshot) throws -> WeatherSnapshot {
+        let snapshots = try modelContext.fetch(FetchDescriptor<WeatherSnapshot>())
+
+        for existing in snapshots {
+            modelContext.delete(existing)
+        }
+
+        modelContext.insert(snapshot)
+        return snapshot
     }
 
     private func hasLocationChanged(

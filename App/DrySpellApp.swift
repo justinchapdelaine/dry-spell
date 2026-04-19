@@ -21,6 +21,17 @@ struct DrySpellApp: App {
             }
 
             BackgroundRefreshScheduler().submitNextRefresh()
+
+            guard phase == .active else {
+                return
+            }
+
+            Task { @MainActor in
+                await ReminderStateResynchronizer().syncCurrentReminder(
+                    modelContainer: modelContainer,
+                    now: .now
+                )
+            }
         }
     }
 }

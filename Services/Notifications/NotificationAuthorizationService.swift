@@ -1,4 +1,6 @@
 import Foundation
+import OSLog
+import SwiftData
 import UserNotifications
 
 enum NotificationPermissionState: Sendable {
@@ -212,6 +214,50 @@ struct NotificationScheduler {
         var calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = TimeZone(identifier: timeZoneIdentifier) ?? .current
         return calendar
+    }
+}
+
+@MainActor
+struct ReminderStateResynchronizer {
+    private static let logger = Logger(
+        subsystem: "com.justinchapdelaine.dryspell",
+        category: "Reminders"
+    )
+    private let notificationScheduler: NotificationScheduler
+
+    init(notificationScheduler: NotificationScheduler) {
+        self.notificationScheduler = notificationScheduler
+    }
+
+    init() {
+        self.notificationScheduler = NotificationScheduler()
+    }
+
+    func syncCurrentReminder(
+        modelContainer: ModelContainer,
+        now: Date = .now
+    ) async {
+        let store = DrySpellStore(modelContext: ModelContext(modelContainer))
+
+        let appState: DrySpellAppState
+
+        do {
+            appState = try store.loadAppState()
+        } catch {
+            Self.logger.error("Failed to load app state for reminder resync: \(error.localizedDescription, privacy: .public)")
+            return
+        }
+
+        do {
+            try await notificationScheduler.syncReminder(
+                gardenProfile: appState.gardenProfile,
+                weatherSnapshot: appState.weatherSnapshot,
+                manualWaterEvents: appState.manualWaterEvents,
+                now: now
+            )
+        } catch {
+            Self.logger.error("Failed to resync reminders from current app state: \(error.localizedDescription, privacy: .public)")
+        }
     }
 }
 

@@ -160,6 +160,8 @@ struct SettingsView: View {
         defer { isSaving = false }
 
         do {
+            let now = Date()
+
             if notificationsEnabled {
                 let permissionState = try await notificationAuthorizationService.resolvePermissionStateForReminders()
                 notificationPermissionState = permissionState
@@ -183,10 +185,8 @@ struct SettingsView: View {
                 notificationHour: notificationHour,
                 weatherSnapshot: weatherSnapshot,
                 recommendationEngine: RecommendationEngine(),
-                now: .now
+                now: now
             )
-            try store.writeWidgetSnapshot(now: .now)
-            backgroundRefreshScheduler.submitNextRefresh()
         } catch {
             activeAlert = SettingsAlert(
                 title: "Couldn't Save Settings",
@@ -195,14 +195,33 @@ struct SettingsView: View {
             return
         }
 
+        let now = Date()
+        let store = DrySpellStore(modelContext: modelContext)
+        var followUpIssues: [String] = []
+
         do {
-            let store = DrySpellStore(modelContext: modelContext)
-            try await syncReminders(using: store, now: .now)
-            dismiss()
+            try store.writeWidgetSnapshot(now: now)
         } catch {
+            followUpIssues.append("update the widget")
+        }
+
+        backgroundRefreshScheduler.submitNextRefresh()
+
+        do {
+            try await syncReminders(using: store, now: now)
+        } catch {
+            followUpIssues.append("update the reminder schedule")
+        }
+
+        if followUpIssues.isEmpty {
+            dismiss()
+        } else {
             activeAlert = SettingsAlert(
                 title: "Settings Saved",
-                message: "Dry Spell saved your changes, but it couldn't update the reminder schedule."
+                message: partialSuccessMessage(
+                    for: "saved your changes",
+                    followUpIssues: followUpIssues
+                )
             )
         }
     }
@@ -272,6 +291,21 @@ struct SettingsView: View {
         let date = calendar.date(from: components) ?? .now
 
         return date.formatted(.dateTime.hour(.defaultDigits(amPM: .abbreviated)))
+    }
+
+    private func partialSuccessMessage(
+        for completedAction: String,
+        followUpIssues: [String]
+    ) -> String {
+        let issueSummary: String
+
+        if followUpIssues.count == 1 {
+            issueSummary = "it couldn't \(followUpIssues[0])."
+        } else {
+            issueSummary = "it couldn't \(followUpIssues.dropLast().joined(separator: ", ")) or \(followUpIssues.last!)."
+        }
+
+        return "Dry Spell \(completedAction), but \(issueSummary)"
     }
 }
 

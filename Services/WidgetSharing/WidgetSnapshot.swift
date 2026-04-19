@@ -45,21 +45,25 @@ struct WidgetSnapshot: Codable, Equatable, Sendable {
         isUnavailable: false
     )
 
-    static let setupNeeded = WidgetSnapshot(
-        statusTitle: "Set up in app",
-        statusSubtitle: "Add your garden location to get started.",
-        updatedAt: .now,
-        isStale: false,
-        isUnavailable: false
-    )
+    static func setupNeeded(now: Date = .now) -> WidgetSnapshot {
+        WidgetSnapshot(
+            statusTitle: "Set up in app",
+            statusSubtitle: "Add your garden location to get started.",
+            updatedAt: now,
+            isStale: false,
+            isUnavailable: false
+        )
+    }
 
-    static let unavailable = WidgetSnapshot(
-        statusTitle: "Weather unavailable",
-        statusSubtitle: "Open Dry Spell to refresh weather.",
-        updatedAt: .now,
-        isStale: false,
-        isUnavailable: true
-    )
+    static func unavailable(now: Date = .now) -> WidgetSnapshot {
+        WidgetSnapshot(
+            statusTitle: "Weather unavailable",
+            statusSubtitle: "Open Dry Spell to refresh weather.",
+            updatedAt: now,
+            isStale: false,
+            isUnavailable: true
+        )
+    }
 
     static func make(
         hasGardenProfile: Bool,
@@ -70,14 +74,15 @@ struct WidgetSnapshot: Codable, Equatable, Sendable {
         forecast48hRainMM: Double,
         fetchedAt: Date?,
         isStale: Bool,
-        isUnavailable: Bool
+        isUnavailable: Bool,
+        now: Date = .now
     ) -> WidgetSnapshot {
         guard hasGardenProfile else {
-            return .setupNeeded
+            return .setupNeeded(now: now)
         }
 
         guard let recommendationRawValue, let fetchedAt else {
-            return .unavailable
+            return .unavailable(now: now)
         }
 
         let dryDaysText = dryDays > 0 ? "Dry \(dryDays) days" : "Updated in app"
@@ -86,7 +91,7 @@ struct WidgetSnapshot: Codable, Equatable, Sendable {
 
         switch recommendationRawValue {
         case "setupNeeded":
-            return .setupNeeded
+            return .setupNeeded(now: now)
         case "weatherUnavailable":
             return WidgetSnapshot(
                 statusTitle: "Weather unavailable",
@@ -112,7 +117,7 @@ struct WidgetSnapshot: Codable, Equatable, Sendable {
             title = "Okay for now"
             subtitle = dryDays > 0 ? dryDaysText : "Conditions stable"
         default:
-            return .unavailable
+            return .unavailable(now: now)
         }
 
         return WidgetSnapshot(

@@ -67,7 +67,8 @@ struct WidgetSnapshotStore {
                 forecast48hRainMM: appState.weatherSnapshot?.forecast48hRainMM ?? 0,
                 fetchedAt: appState.weatherSnapshot?.fetchedAt,
                 isStale: appState.weatherSnapshot?.isStale ?? false,
-                isUnavailable: appState.weatherSnapshot?.isUnavailable ?? false
+                isUnavailable: appState.weatherSnapshot?.isUnavailable ?? false,
+                now: now
             )
         )
     }

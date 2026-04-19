@@ -1,7 +1,7 @@
 import Foundation
 
 enum DrySpellConstants {
-    static let appGroupIdentifier = "group.com.justinchapdelaine.dryspell"
+    nonisolated static let appGroupIdentifier = "group.com.justinchapdelaine.dryspell"
     static let widgetSnapshotFilename = "widget-snapshot.json"
     static let backgroundRefreshTaskIdentifier = "com.justinchapdelaine.dryspell.refresh"
     static let backgroundRefreshEarliestIntervalHours = 4

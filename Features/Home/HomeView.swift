@@ -1,7 +1,12 @@
 import SwiftUI
 import SwiftData
+import OSLog
 
 struct HomeView: View {
+    private static let logger = Logger(
+        subsystem: "com.justinchapdelaine.dryspell",
+        category: "HomeView"
+    )
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \GardenProfile.createdAt) private var gardenProfiles: [GardenProfile]
     @Query(sort: \WeatherSnapshot.fetchedAt, order: .reverse) private var weatherSnapshots: [WeatherSnapshot]
@@ -109,11 +114,15 @@ struct HomeView: View {
             if shouldRefreshWeatherSnapshot(currentSnapshot: weatherSnapshot) {
                 await refreshWeather(for: gardenProfile)
             } else {
-                _ = try? DrySpellStore(modelContext: modelContext).reevaluateWeatherSnapshot(
-                    for: gardenProfile,
-                    recommendationEngine: recommendationEngine,
-                    now: .now
-                )
+                do {
+                    _ = try DrySpellStore(modelContext: modelContext).reevaluateWeatherSnapshot(
+                        for: gardenProfile,
+                        recommendationEngine: recommendationEngine,
+                        now: .now
+                    )
+                } catch {
+                    Self.logger.error("Failed to reevaluate cached snapshot on home task refresh: \(error.localizedDescription, privacy: .public)")
+                }
                 await syncReminders()
             }
         }
@@ -270,35 +279,64 @@ struct HomeView: View {
         weatherRefreshError = nil
         defer { isRefreshingWeather = false }
 
+        let store = DrySpellStore(modelContext: modelContext)
+        let snapshot: WeatherSnapshot
+
         do {
             let weatherClient = WeatherClient()
-            let snapshot = try await weatherClient.refreshSnapshot(
+            snapshot = try await weatherClient.refreshSnapshot(
                 for: gardenProfile,
                 existingSnapshot: weatherSnapshot,
                 manualWaterEvents: manualWaterEvents
             )
-            let store = DrySpellStore(modelContext: modelContext)
             _ = try store.saveWeatherSnapshot(snapshot)
-            try store.writeWidgetSnapshot(now: snapshot.fetchedAt)
-            backgroundRefreshScheduler.submitNextRefresh()
         } catch {
-            let store = DrySpellStore(modelContext: modelContext)
-            _ = try? store.reevaluateWeatherSnapshot(
-                for: gardenProfile,
-                recommendationEngine: recommendationEngine,
-                now: .now
-            )
-            try? store.writeWidgetSnapshot(now: .now)
-            try? await syncReminders(using: store, now: .now)
+            Self.logger.error("Weather refresh failed; attempting cached fallback: \(error.localizedDescription, privacy: .public)")
+            do {
+                _ = try store.reevaluateWeatherSnapshot(
+                    for: gardenProfile,
+                    recommendationEngine: recommendationEngine,
+                    now: .now
+                )
+            } catch {
+                Self.logger.error("Cached weather reevaluation failed after refresh error: \(error.localizedDescription, privacy: .public)")
+            }
+            do {
+                try store.writeWidgetSnapshot(now: .now)
+            } catch {
+                Self.logger.error("Failed to write widget snapshot after refresh fallback: \(error.localizedDescription, privacy: .public)")
+            }
+            do {
+                try await syncReminders(using: store, now: .now)
+            } catch {
+                Self.logger.error("Failed to sync reminders after refresh fallback: \(error.localizedDescription, privacy: .public)")
+            }
             weatherRefreshError = "Couldn't refresh weather right now. Dry Spell is showing the last known status if it's still usable."
             return
         }
 
+        backgroundRefreshScheduler.submitNextRefresh()
+        var followUpIssues: [String] = []
+
         do {
-            let store = DrySpellStore(modelContext: modelContext)
-            try await syncReminders(using: store, now: .now)
+            try store.writeWidgetSnapshot(now: snapshot.fetchedAt)
         } catch {
-            weatherRefreshError = "Weather updated, but Dry Spell couldn't refresh the reminder schedule."
+            Self.logger.error("Weather refresh succeeded but widget sync failed: \(error.localizedDescription, privacy: .public)")
+            followUpIssues.append("update the widget")
+        }
+
+        do {
+            try await syncReminders(using: store, now: snapshot.fetchedAt)
+        } catch {
+            Self.logger.error("Weather refresh succeeded but reminder sync failed: \(error.localizedDescription, privacy: .public)")
+            followUpIssues.append("refresh the reminder schedule")
+        }
+
+        if !followUpIssues.isEmpty {
+            weatherRefreshError = partialSuccessMessage(
+                for: "updated the weather",
+                followUpIssues: followUpIssues
+            )
         }
     }
 
@@ -315,17 +353,16 @@ struct HomeView: View {
         isMarkingWatered = true
         defer { isMarkingWatered = false }
 
+        let now = Date()
+        let store = DrySpellStore(modelContext: modelContext)
+
         do {
-            let now = Date()
-            let store = DrySpellStore(modelContext: modelContext)
             try store.recordManualWatering(
                 for: gardenProfile,
                 weatherSnapshot: weatherSnapshot,
                 recommendationEngine: recommendationEngine,
                 now: now
             )
-            try store.writeWidgetSnapshot(now: now)
-            backgroundRefreshScheduler.submitNextRefresh()
         } catch {
             activeAlert = HomeAlert(
                 title: "Couldn't Save Watering",
@@ -334,13 +371,30 @@ struct HomeView: View {
             return
         }
 
+        backgroundRefreshScheduler.submitNextRefresh()
+        var followUpIssues: [String] = []
+
         do {
-            let store = DrySpellStore(modelContext: modelContext)
-            try await syncReminders(using: store, now: .now)
+            try store.writeWidgetSnapshot(now: now)
         } catch {
+            Self.logger.error("Manual watering saved but widget sync failed: \(error.localizedDescription, privacy: .public)")
+            followUpIssues.append("update the widget")
+        }
+
+        do {
+            try await syncReminders(using: store, now: now)
+        } catch {
+            Self.logger.error("Manual watering saved but reminder sync failed: \(error.localizedDescription, privacy: .public)")
+            followUpIssues.append("update the reminder schedule")
+        }
+
+        if !followUpIssues.isEmpty {
             activeAlert = HomeAlert(
                 title: "Watering Saved",
-                message: "Dry Spell saved your watering update, but it couldn't update the reminder schedule."
+                message: partialSuccessMessage(
+                    for: "saved your watering update",
+                    followUpIssues: followUpIssues
+                )
             )
         }
     }
@@ -351,6 +405,7 @@ struct HomeView: View {
             let store = DrySpellStore(modelContext: modelContext)
             try await syncReminders(using: store, now: .now)
         } catch {
+            Self.logger.error("Standalone reminder sync failed: \(error.localizedDescription, privacy: .public)")
             weatherRefreshError = "Dry Spell couldn't update the reminder schedule."
         }
     }
@@ -542,7 +597,12 @@ struct HomeView: View {
             let interval = nextTransition.timeIntervalSinceNow
 
             if interval > 0 {
-                try? await Task.sleep(for: .seconds(interval))
+                do {
+                    try await Task.sleep(for: .seconds(interval))
+                } catch {
+                    Self.logger.debug("Freshness monitor sleep interrupted")
+                    return
+                }
             }
 
             guard !Task.isCancelled else {
@@ -560,6 +620,7 @@ struct HomeView: View {
                 try store.writeWidgetSnapshot(now: now)
                 try await syncReminders(using: store, now: now)
             } catch {
+                Self.logger.error("Failed to update freshness-driven state: \(error.localizedDescription, privacy: .public)")
                 weatherRefreshError = "Dry Spell couldn't update weather freshness state."
                 return
             }
@@ -580,6 +641,21 @@ struct HomeView: View {
             .padding(16)
             .background(Color.orange.opacity(0.08), in: RoundedRectangle(cornerRadius: 18, style: .continuous))
             .accessibilityLabel("Weather refresh issue. \(message)")
+    }
+
+    private func partialSuccessMessage(
+        for completedAction: String,
+        followUpIssues: [String]
+    ) -> String {
+        let issueSummary: String
+
+        if followUpIssues.count == 1 {
+            issueSummary = "it couldn't \(followUpIssues[0])."
+        } else {
+            issueSummary = "it couldn't \(followUpIssues.dropLast().joined(separator: ", ")) or \(followUpIssues.last!)."
+        }
+
+        return "Dry Spell \(completedAction), but \(issueSummary)"
     }
 }
 

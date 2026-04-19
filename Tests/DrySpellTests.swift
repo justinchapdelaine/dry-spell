@@ -188,6 +188,137 @@ struct DrySpellTests {
     }
 
     @Test
+    @MainActor
+    func storeDoesNotPersistPartialSettingsWhenCommitFails() throws {
+        let container = DrySpellModelContainer.makePreviewContainer()
+        let store = DrySpellStore(modelContext: ModelContext(container))
+        let existingProfile = try store.saveGardenProfile(
+            GardenProfile(
+                displayName: "Back Garden",
+                latitude: 49.2827,
+                longitude: -123.1207,
+                timeZoneIdentifier: "America/Vancouver",
+                dryDayThresholdDays: 7
+            )
+        )
+        _ = try store.saveWeatherSnapshot(
+            WeatherSnapshot(
+                fetchedAt: Date(timeIntervalSince1970: 1_713_456_000),
+                observed7DayRainMM: 8.0,
+                forecast48hRainMM: 0,
+                effective7DayMoistureMM: 8.0,
+                deficitMM: 17.4,
+                dryDays: 5,
+                recommendationRawValue: RecommendationStatus.okayForNow.rawValue
+            )
+        )
+
+        #expect(throws: SaveInterruptionError.syntheticFailure) {
+            _ = try store.saveGardenSettings(
+                existingProfile: existingProfile,
+                location: ResolvedGardenLocation(
+                    displayName: "Front Garden",
+                    latitude: 49.2500,
+                    longitude: -123.1000,
+                    timeZoneIdentifier: "America/Vancouver"
+                ),
+                dryDayThresholdDays: 5,
+                notificationsEnabled: true,
+                notificationHour: 8,
+                weatherSnapshot: nil,
+                recommendationEngine: RecommendationEngine(),
+                beforeCommit: {
+                    throw SaveInterruptionError.syntheticFailure
+                },
+                now: Date(timeIntervalSince1970: 1_713_456_000)
+            )
+        }
+
+        let reloadedStore = DrySpellStore(modelContext: ModelContext(container))
+        let reloadedProfile = try #require(try reloadedStore.loadGardenProfile())
+        let reloadedSnapshot = try #require(try reloadedStore.loadLatestWeatherSnapshot())
+
+        #expect(reloadedProfile.displayName == "Back Garden")
+        #expect(reloadedProfile.notificationsEnabled == false)
+        #expect(reloadedProfile.notificationHour == DrySpellConstants.defaultNotificationHour)
+        #expect(reloadedSnapshot.recommendationRawValue == RecommendationStatus.okayForNow.rawValue)
+    }
+
+    @Test
+    @MainActor
+    func storeDoesNotPersistPartialManualWateringWhenCommitFails() throws {
+        let container = DrySpellModelContainer.makePreviewContainer()
+        let store = DrySpellStore(modelContext: ModelContext(container))
+        let profile = try store.saveGardenProfile(
+            GardenProfile(
+                displayName: "Back Garden",
+                latitude: 49.2827,
+                longitude: -123.1207,
+                timeZoneIdentifier: "America/Vancouver",
+                dryDayThresholdDays: 5
+            )
+        )
+        _ = try store.saveWeatherSnapshot(
+            WeatherSnapshot(
+                fetchedAt: Date(timeIntervalSince1970: 1_713_456_000),
+                observed7DayRainMM: 10.0,
+                forecast48hRainMM: 0,
+                effective7DayMoistureMM: 10.0,
+                deficitMM: 15.4,
+                dryDays: 6,
+                recommendationRawValue: RecommendationStatus.waterSoon.rawValue
+            )
+        )
+
+        let currentSnapshot = try #require(try store.loadLatestWeatherSnapshot())
+
+        #expect(throws: SaveInterruptionError.syntheticFailure) {
+            try store.recordManualWatering(
+                for: profile,
+                weatherSnapshot: currentSnapshot,
+                recommendationEngine: RecommendationEngine(),
+                beforeCommit: {
+                    throw SaveInterruptionError.syntheticFailure
+                },
+                now: Date(timeIntervalSince1970: 1_713_456_000)
+            )
+        }
+
+        let reloadedStore = DrySpellStore(modelContext: ModelContext(container))
+        let reloadedSnapshot = try #require(try reloadedStore.loadLatestWeatherSnapshot())
+
+        #expect(try reloadedStore.loadManualWaterEvents().isEmpty)
+        #expect(reloadedSnapshot.recommendationRawValue == RecommendationStatus.waterSoon.rawValue)
+        #expect(reloadedSnapshot.deficitMM == 15.4)
+    }
+
+    @Test
+    @MainActor
+    func onboardingRollsBackProfileWhenWidgetSnapshotWriteFails() throws {
+        let container = DrySpellModelContainer.makePreviewContainer()
+        let store = DrySpellStore(modelContext: ModelContext(container))
+
+        #expect(throws: WidgetSnapshotStoreError.missingAppGroupContainer) {
+            _ = try store.saveInitialGardenProfileAndWidgetSnapshot(
+                GardenProfile(
+                    displayName: "Back Garden",
+                    latitude: 49.2827,
+                    longitude: -123.1207,
+                    timeZoneIdentifier: "America/Vancouver"
+                ),
+                widgetSnapshotStore: WidgetSnapshotStore(
+                    containerURLProvider: { nil },
+                    reloadTimelines: {}
+                ),
+                now: Date(timeIntervalSince1970: 1_713_456_000)
+            )
+        }
+
+        let reloadedStore = DrySpellStore(modelContext: ModelContext(container))
+        #expect(try reloadedStore.loadGardenProfile() == nil)
+    }
+
+    @Test
     func widgetSnapshotStoreRoundTripsCodablePayload() throws {
         let directory = FileManager.default.temporaryDirectory
             .appending(path: UUID().uuidString, directoryHint: .isDirectory)
@@ -236,6 +367,7 @@ struct DrySpellTests {
 
     @Test
     func widgetSnapshotUsesSetupAndUnavailableFallbacks() {
+        let now = Date(timeIntervalSince1970: 1_713_456_000)
         let emptySnapshot = WidgetSnapshot.make(
             hasGardenProfile: false,
             recommendationRawValue: nil,
@@ -245,7 +377,8 @@ struct DrySpellTests {
             forecast48hRainMM: 0,
             fetchedAt: nil,
             isStale: false,
-            isUnavailable: false
+            isUnavailable: false,
+            now: now
         )
         let unavailableSnapshot = WidgetSnapshot.make(
             hasGardenProfile: true,
@@ -256,11 +389,14 @@ struct DrySpellTests {
             forecast48hRainMM: 0,
             fetchedAt: nil,
             isStale: false,
-            isUnavailable: false
+            isUnavailable: false,
+            now: now
         )
 
         #expect(emptySnapshot.statusTitle == "Set up in app")
+        #expect(emptySnapshot.updatedAt == now)
         #expect(unavailableSnapshot.statusTitle == "Weather unavailable")
+        #expect(unavailableSnapshot.updatedAt == now)
         #expect(unavailableSnapshot.isUnavailable)
     }
 
@@ -605,7 +741,7 @@ struct DrySpellTests {
     }
 
     @Test
-    func submitNextRefreshCancelsExistingRequestBeforeSubmitting() throws {
+    func submitNextRefreshSubmitsReplacementRequestWithoutCancellingFirst() throws {
         let schedulerSpy = BackgroundRefreshSchedulingSpy()
         let scheduler = BackgroundRefreshScheduler(scheduler: schedulerSpy)
 
@@ -613,10 +749,48 @@ struct DrySpellTests {
 
         let request = try #require(schedulerSpy.submittedRequests.first as? BGAppRefreshTaskRequest)
 
-        #expect(schedulerSpy.cancelledIdentifiers == [DrySpellConstants.backgroundRefreshTaskIdentifier])
+        #expect(schedulerSpy.cancelledIdentifiers.isEmpty)
         #expect(schedulerSpy.submittedRequests.count == 1)
         #expect(request.identifier == DrySpellConstants.backgroundRefreshTaskIdentifier)
         #expect(request.earliestBeginDate != nil)
+    }
+
+    @Test
+    @MainActor
+    func reminderStateResynchronizerSchedulesEligibleReminderOnForegroundActivation() async throws {
+        let container = DrySpellModelContainer.makePreviewContainer()
+        let store = DrySpellStore(modelContext: ModelContext(container))
+        let now = Date(timeIntervalSince1970: 1_713_429_000)
+        _ = try store.saveGardenProfile(
+            GardenProfile(
+                displayName: "Back Garden",
+                latitude: 49.2827,
+                longitude: -123.1207,
+                timeZoneIdentifier: "America/Vancouver",
+                dryDayThresholdDays: 5,
+                notificationsEnabled: true,
+                notificationHour: 9
+            )
+        )
+        _ = try store.saveWeatherSnapshot(
+            WeatherSnapshot(
+                fetchedAt: now,
+                observed7DayRainMM: 8,
+                forecast48hRainMM: 0,
+                dryDays: 5
+            )
+        )
+
+        let centerClient = NotificationCenterClientSpy(authorizationStatus: .authorized)
+        let resynchronizer = ReminderStateResynchronizer(
+            notificationScheduler: NotificationScheduler(centerClient: centerClient)
+        )
+
+        await resynchronizer.syncCurrentReminder(modelContainer: container, now: now)
+
+        let request = try #require(await centerClient.addedRequests.first)
+        #expect(request.identifier == DrySpellConstants.wateringReminderIdentifier)
+        #expect(request.dateComponents.hour == 9)
     }
 
     @Test
@@ -901,15 +1075,15 @@ private actor NotificationCenterClientSpy: UserNotificationCenterClient {
     }
 }
 
+private enum SaveInterruptionError: Error {
+    case syntheticFailure
+}
+
 private final class BackgroundRefreshSchedulingSpy: BackgroundRefreshScheduling {
     private(set) var submittedRequests: [BGTaskRequest] = []
     private(set) var cancelledIdentifiers: [String] = []
 
     func submit(_ request: BGTaskRequest) throws {
         submittedRequests.append(request)
-    }
-
-    func cancel(taskRequestWithIdentifier identifier: String) {
-        cancelledIdentifiers.append(identifier)
     }
 }

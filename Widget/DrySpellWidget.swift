@@ -1,5 +1,6 @@
 import SwiftUI
 import WidgetKit
+import OSLog
 
 struct WidgetSnapshotPayload: Codable, Equatable {
     let statusTitle: String
@@ -24,32 +25,40 @@ struct WidgetSnapshotPayload: Codable, Equatable {
         isUnavailable: false
     )
 
-    static let setupNeeded = WidgetSnapshotPayload(
-        statusTitle: "Set up in app",
-        statusSubtitle: "Add your garden location to get started.",
-        lastMeaningfulRainDate: nil,
-        dryDays: 0,
-        observed7DayRainMM: 0,
-        forecast48hRainMM: 0,
-        updatedAt: .now,
-        isStale: false,
-        isUnavailable: false
-    )
+    static func setupNeeded(now: Date = .now) -> WidgetSnapshotPayload {
+        WidgetSnapshotPayload(
+            statusTitle: "Set up in app",
+            statusSubtitle: "Add your garden location to get started.",
+            lastMeaningfulRainDate: nil,
+            dryDays: 0,
+            observed7DayRainMM: 0,
+            forecast48hRainMM: 0,
+            updatedAt: now,
+            isStale: false,
+            isUnavailable: false
+        )
+    }
 
-    static let unavailable = WidgetSnapshotPayload(
-        statusTitle: "Weather unavailable",
-        statusSubtitle: "Open Dry Spell to refresh weather.",
-        lastMeaningfulRainDate: nil,
-        dryDays: 0,
-        observed7DayRainMM: 0,
-        forecast48hRainMM: 0,
-        updatedAt: .now,
-        isStale: false,
-        isUnavailable: true
-    )
+    static func unavailable(now: Date = .now) -> WidgetSnapshotPayload {
+        WidgetSnapshotPayload(
+            statusTitle: "Weather unavailable",
+            statusSubtitle: "Open Dry Spell to refresh weather.",
+            lastMeaningfulRainDate: nil,
+            dryDays: 0,
+            observed7DayRainMM: 0,
+            forecast48hRainMM: 0,
+            updatedAt: now,
+            isStale: false,
+            isUnavailable: true
+        )
+    }
 }
 
 private struct WidgetSnapshotReader {
+    private static let logger = Logger(
+        subsystem: "com.justinchapdelaine.dryspell",
+        category: "Widget"
+    )
     private let decoder: JSONDecoder
     private let fileManager: FileManager
 
@@ -60,13 +69,14 @@ private struct WidgetSnapshotReader {
         self.decoder = decoder
     }
 
-    func read() -> WidgetSnapshotPayload? {
+    func read(now: Date = .now) -> WidgetSnapshotReadResult {
         guard
             let containerURL = fileManager.containerURL(
                 forSecurityApplicationGroupIdentifier: DrySpellConstants.appGroupIdentifier
             )
         else {
-            return nil
+            Self.logger.error("Widget App Group container is unavailable while reading snapshot")
+            return .unavailable(WidgetSnapshotPayload.unavailable(now: now))
         }
 
         let fileURL = containerURL.appending(
@@ -75,14 +85,29 @@ private struct WidgetSnapshotReader {
         )
 
         guard fileManager.fileExists(atPath: fileURL.path()) else {
-            return nil
+            return .setupNeeded(WidgetSnapshotPayload.setupNeeded(now: now))
         }
 
-        guard let data = try? Data(contentsOf: fileURL) else {
-            return nil
+        do {
+            let data = try Data(contentsOf: fileURL)
+            return .snapshot(try decoder.decode(WidgetSnapshotPayload.self, from: data))
+        } catch {
+            Self.logger.error("Failed to read or decode widget snapshot: \(error.localizedDescription, privacy: .public)")
+            return .unavailable(WidgetSnapshotPayload.unavailable(now: now))
         }
+    }
+}
 
-        return try? decoder.decode(WidgetSnapshotPayload.self, from: data)
+private enum WidgetSnapshotReadResult {
+    case snapshot(WidgetSnapshotPayload)
+    case setupNeeded(WidgetSnapshotPayload)
+    case unavailable(WidgetSnapshotPayload)
+
+    var payload: WidgetSnapshotPayload {
+        switch self {
+        case .snapshot(let payload), .setupNeeded(let payload), .unavailable(let payload):
+            return payload
+        }
     }
 }
 
@@ -139,13 +164,14 @@ struct DrySpellWidgetTimelineProvider: TimelineProvider {
     }
 
     func getSnapshot(in context: Context, completion: @escaping (DrySpellWidgetEntry) -> Void) {
-        let snapshot = context.isPreview ? .preview : (snapshotReader.read() ?? .setupNeeded)
+        let now = Date()
+        let snapshot = context.isPreview ? .preview : snapshotReader.read(now: now).payload
         completion(DrySpellWidgetEntry(date: .now, snapshot: snapshot))
     }
 
     func getTimeline(in context: Context, completion: @escaping (Timeline<DrySpellWidgetEntry>) -> Void) {
         let now = Date()
-        let snapshot = snapshotReader.read() ?? .setupNeeded
+        let snapshot = snapshotReader.read(now: now).payload
         let entry = DrySpellWidgetEntry(date: now, snapshot: snapshot)
         let nextUpdate = nextRefreshDate(for: snapshot, now: now)
         completion(Timeline(entries: [entry], policy: .after(nextUpdate)))
@@ -278,8 +304,8 @@ struct DrySpellWidget: Widget {
     DrySpellWidget()
 } timeline: {
     DrySpellWidgetEntry(date: .now, snapshot: .preview)
-    DrySpellWidgetEntry(date: .now, snapshot: .setupNeeded)
-    DrySpellWidgetEntry(date: .now, snapshot: .unavailable)
+    DrySpellWidgetEntry(date: .now, snapshot: .setupNeeded())
+    DrySpellWidgetEntry(date: .now, snapshot: .unavailable())
 }
 
 #Preview(as: .systemMedium) {

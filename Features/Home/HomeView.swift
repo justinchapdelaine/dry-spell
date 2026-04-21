@@ -15,7 +15,6 @@ struct HomeView: View {
     @State private var isRefreshingWeather = false
     @State private var isMarkingWatered = false
     @State private var isShowingSettings = false
-    @State private var isShowingAttributionDetails = false
     @State private var weatherRefreshError: String?
     @State private var activeAlert: HomeAlert?
 
@@ -40,7 +39,6 @@ struct HomeView: View {
                     VStack(alignment: .leading, spacing: 20) {
                         recommendationHeader(for: gardenProfile)
                         metricsSection(for: gardenProfile)
-                        explanationSection
 
                         if let weatherRefreshError {
                             weatherIssueBanner(weatherRefreshError)
@@ -61,7 +59,7 @@ struct HomeView: View {
                 ContentUnavailableView(
                     "Set up your garden",
                     systemImage: "location.slash",
-                    description: Text("Choose one garden location to start tracking rain, recommendations, reminders, and the widget.")
+                    description: Text("Choose your garden location to start tracking rainfall, reminders, and your widget.")
                 )
             }
         }
@@ -79,7 +77,7 @@ struct HomeView: View {
                     }
                     .disabled(isRefreshingWeather)
                     .accessibilityLabel(isRefreshingWeather ? "Refreshing weather" : "Refresh weather")
-                    .accessibilityHint("Fetches the latest weather for your saved garden.")
+                    .accessibilityHint("Fetches the latest weather for your garden.")
 
                     Button {
                         isShowingSettings = true
@@ -87,7 +85,7 @@ struct HomeView: View {
                         Image(systemName: "slider.horizontal.3")
                     }
                     .accessibilityLabel("Open settings")
-                    .accessibilityHint("Edits your saved location, threshold, reminders, and attribution.")
+                    .accessibilityHint("Edits your garden and reminders.")
                 }
             }
         }
@@ -154,7 +152,7 @@ struct HomeView: View {
                         .foregroundStyle(.secondary)
                         .multilineTextAlignment(.trailing)
                 } else if isRefreshingWeather {
-                    Label("Refreshing weather...", systemImage: "arrow.clockwise")
+                    Label("Refreshing weather", systemImage: "arrow.clockwise")
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                 }
@@ -185,7 +183,7 @@ struct HomeView: View {
             .buttonStyle(.glassProminent)
             .controlSize(.large)
             .disabled(!canMarkWatered || wateredToday(for: gardenProfile) || isMarkingWatered)
-            .accessibilityHint("Records that you've already watered today.")
+            .accessibilityHint("Records that you watered today.")
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(24)
@@ -208,14 +206,8 @@ struct HomeView: View {
     @ViewBuilder
     private func metricsSection(for gardenProfile: GardenProfile) -> some View {
         VStack(alignment: .leading, spacing: 12) {
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Conditions")
-                    .font(.headline)
-
-                Text("Observed rain, forecast, and your saved threshold.")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-            }
+            Text("Conditions")
+                .font(.headline)
 
             GlassEffectContainer(spacing: 16) {
                 LazyVGrid(
@@ -231,36 +223,14 @@ struct HomeView: View {
         }
     }
 
-    private var explanationSection: some View {
-        GroupBox {
-            Text(explanationText)
-                .foregroundStyle(.secondary)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .accessibilityElement(children: .combine)
-        } label: {
-            Text("Recommendation")
-                .font(.headline)
-        }
-    }
-
     @ViewBuilder
     private var attributionSection: some View {
-        if let weatherSnapshot, !weatherSnapshot.attributionText.isEmpty {
+        if weatherSnapshot != nil {
             GroupBox {
-                DisclosureGroup("Weather Attribution", isExpanded: $isShowingAttributionDetails) {
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text(weatherSnapshot.attributionText)
-                            .font(.footnote)
-                            .foregroundStyle(.secondary)
-
-                        if let attributionURL = URL(string: weatherSnapshot.attributionURLString) {
-                            Link("Open Legal Attribution", destination: attributionURL)
-                                .font(.footnote.weight(.semibold))
-                                .accessibilityHint("Opens Apple Weather attribution details.")
-                        }
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                }
+                WeatherAttributionDetails(
+                    weatherSnapshot: weatherSnapshot,
+                    disclosureTitle: "Weather Attribution"
+                )
             }
         }
     }
@@ -311,7 +281,7 @@ struct HomeView: View {
             } catch {
                 Self.logger.error("Failed to sync reminders after refresh fallback: \(error.localizedDescription, privacy: .public)")
             }
-            weatherRefreshError = "Couldn't refresh weather right now. Dry Spell is showing the last known status if it's still usable."
+            weatherRefreshError = "Couldn't refresh weather right now. Showing the last usable update."
             return
         }
 
@@ -333,7 +303,7 @@ struct HomeView: View {
         }
 
         if !followUpIssues.isEmpty {
-            weatherRefreshError = partialSuccessMessage(
+            weatherRefreshError = DrySpellConstants.partialSuccessMessage(
                 for: "updated the weather",
                 followUpIssues: followUpIssues
             )
@@ -345,7 +315,7 @@ struct HomeView: View {
         guard let weatherSnapshot, canMarkWatered else {
             activeAlert = HomeAlert(
                 title: "Weather Update Needed",
-                message: "Refresh weather before marking watered so Dry Spell can apply the correct watering credit."
+                message: "Refresh the weather before marking your garden as watered so Dry Spell can save it accurately."
             )
             return
         }
@@ -391,7 +361,7 @@ struct HomeView: View {
         if !followUpIssues.isEmpty {
             activeAlert = HomeAlert(
                 title: "Watering Saved",
-                message: partialSuccessMessage(
+                message: DrySpellConstants.partialSuccessMessage(
                     for: "saved your watering update",
                     followUpIssues: followUpIssues
                 )
@@ -406,7 +376,7 @@ struct HomeView: View {
             try await syncReminders(using: store, now: .now)
         } catch {
             Self.logger.error("Standalone reminder sync failed: \(error.localizedDescription, privacy: .public)")
-            weatherRefreshError = "Dry Spell couldn't update the reminder schedule."
+            weatherRefreshError = "Couldn't update reminders right now."
         }
     }
 
@@ -425,7 +395,7 @@ struct HomeView: View {
         guard let weatherSnapshot else {
             return RecommendationDisplay(
                 title: "Weather update needed",
-                subtitle: "Dry Spell is waiting on fresh weather for \(gardenProfile.displayName).",
+                subtitle: "Waiting for fresh weather for \(gardenProfile.displayName).",
                 badgeTitle: "Weather unavailable",
                 symbolName: "icloud.slash",
                 badgeColor: .orange
@@ -438,7 +408,7 @@ struct HomeView: View {
         case .setupNeeded:
             return RecommendationDisplay(
                 title: "Set up your garden",
-                subtitle: "Add a saved location to start tracking rainfall.",
+                subtitle: "Save your garden location to start tracking rainfall.",
                 badgeTitle: "Setup needed",
                 symbolName: "location.slash",
                 badgeColor: .secondary
@@ -446,7 +416,7 @@ struct HomeView: View {
         case .weatherUnavailable:
             return RecommendationDisplay(
                 title: "Weather update needed",
-                subtitle: "Dry Spell can’t make a fresh watering call right now.",
+                subtitle: "No fresh watering recommendation is available right now.",
                 badgeTitle: "Weather unavailable",
                 symbolName: "icloud.slash",
                 badgeColor: .orange
@@ -454,7 +424,7 @@ struct HomeView: View {
         case .recentlyWatered:
             return RecommendationDisplay(
                 title: "Recently watered",
-                subtitle: "Dry Spell will treat today as covered.",
+                subtitle: "Your garden is covered for today.",
                 badgeTitle: "Watered today",
                 symbolName: "checkmark.circle.fill",
                 badgeColor: .green
@@ -462,7 +432,7 @@ struct HomeView: View {
         case .rainExpected:
             return RecommendationDisplay(
                 title: "Rain expected",
-                subtitle: "Enough rain is forecast soon, so you can hold off.",
+                subtitle: "Rain is on the way, so you can wait to water.",
                 badgeTitle: "Hold off watering",
                 symbolName: "cloud.rain.fill",
                 badgeColor: .blue
@@ -470,7 +440,7 @@ struct HomeView: View {
         case .waterSoon:
             return RecommendationDisplay(
                 title: "Water soon",
-                subtitle: "It has been dry and the forecast doesn't cover the deficit.",
+                subtitle: "It's been dry, and the next forecast won't make up the difference.",
                 badgeTitle: "Watering recommended",
                 symbolName: "drop.fill",
                 badgeColor: .teal
@@ -478,7 +448,7 @@ struct HomeView: View {
         case .okayForNow:
             return RecommendationDisplay(
                 title: "Okay for now",
-                subtitle: "Recent moisture is keeping the garden on track.",
+                subtitle: "Recent moisture is keeping things on track.",
                 badgeTitle: "No action needed",
                 symbolName: "leaf.fill",
                 badgeColor: .green
@@ -525,22 +495,16 @@ struct HomeView: View {
                 symbolName: "drop.circle",
                 tint: .cyan
             ),
-            HomeConditionMetric(
-                title: "Dry-Day Threshold",
-                value: "\(gardenProfile.dryDayThresholdDays) days",
-                symbolName: "sun.max",
-                tint: .orange
-            ),
         ]
     }
 
     private var lastMeaningfulRainText: String {
         guard let weatherSnapshot else {
-            return "Waiting for weather"
+            return "Weather pending"
         }
 
         guard weatherSnapshot.lastMeaningfulRainDate != nil else {
-            return weatherSnapshot.dryDays > 0 ? "More than \(weatherSnapshot.dryDays) days ago" : "No recent rain found"
+            return weatherSnapshot.dryDays > 0 ? "More than \(weatherSnapshot.dryDays) days ago" : "No recent meaningful rain"
         }
 
         return "\(weatherSnapshot.dryDays) days ago"
@@ -554,14 +518,6 @@ struct HomeView: View {
         return lastMeaningfulRainDate.formatted(date: .abbreviated, time: .omitted)
     }
 
-    private var explanationText: String {
-        if let weatherSnapshot, !weatherSnapshot.explanationText.isEmpty {
-            return weatherSnapshot.explanationText
-        }
-
-        return "Dry Spell will show a recommendation here after the next weather update."
-    }
-
     private func measurementText(_ value: Double) -> String {
         "\(value.formatted(.number.precision(.fractionLength(1)))) mm"
     }
@@ -570,11 +526,11 @@ struct HomeView: View {
         let statusSuffix: String
 
         if weatherSnapshot.isUnavailable {
-            statusSuffix = "Weather unavailable"
+            statusSuffix = "Unavailable"
         } else if weatherSnapshot.isStale {
-            statusSuffix = "Stale"
+            statusSuffix = "Older update"
         } else {
-            statusSuffix = "Fresh"
+            statusSuffix = "Current"
         }
 
         return "Updated \(weatherSnapshot.fetchedAt.formatted(date: .abbreviated, time: .shortened)) · \(statusSuffix)"
@@ -621,7 +577,7 @@ struct HomeView: View {
                 try await syncReminders(using: store, now: now)
             } catch {
                 Self.logger.error("Failed to update freshness-driven state: \(error.localizedDescription, privacy: .public)")
-                weatherRefreshError = "Dry Spell couldn't update weather freshness state."
+                weatherRefreshError = "Couldn't update weather status right now."
                 return
             }
         }
@@ -641,21 +597,6 @@ struct HomeView: View {
             .padding(16)
             .background(Color.orange.opacity(0.08), in: RoundedRectangle(cornerRadius: 18, style: .continuous))
             .accessibilityLabel("Weather refresh issue. \(message)")
-    }
-
-    private func partialSuccessMessage(
-        for completedAction: String,
-        followUpIssues: [String]
-    ) -> String {
-        let issueSummary: String
-
-        if followUpIssues.count == 1 {
-            issueSummary = "it couldn't \(followUpIssues[0])."
-        } else {
-            issueSummary = "it couldn't \(followUpIssues.dropLast().joined(separator: ", ")) or \(followUpIssues.last!)."
-        }
-
-        return "Dry Spell \(completedAction), but \(issueSummary)"
     }
 }
 

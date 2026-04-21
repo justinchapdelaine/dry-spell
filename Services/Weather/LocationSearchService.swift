@@ -28,13 +28,13 @@ enum LocationSearchError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .missingCompletion:
-            return "That search result is no longer available. Please try again."
+            return "That result is no longer available. Please try again."
         case .noMapItemFound:
-            return "Dry Spell couldn't resolve that place to a location."
+            return "Couldn't turn that place into a saved location."
         case .noCoordinateFound:
-            return "Dry Spell couldn't find coordinates for that place."
+            return "Couldn't find coordinates for that place."
         case .noTimeZoneFound:
-            return "Dry Spell couldn't determine the time zone for that place."
+            return "Couldn't determine the time zone for that place."
         }
     }
 }

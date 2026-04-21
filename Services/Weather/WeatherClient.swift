@@ -96,7 +96,9 @@ struct WeatherClient {
             isStale: false,
             isUnavailable: false,
             attributionText: weatherAttribution.legalAttributionText,
-            attributionURLString: weatherAttribution.legalPageURL.absoluteString
+            attributionURLString: weatherAttribution.legalPageURL.absoluteString,
+            attributionCombinedMarkLightURLString: weatherAttribution.combinedMarkLightURL.absoluteString,
+            attributionCombinedMarkDarkURLString: weatherAttribution.combinedMarkDarkURL.absoluteString
         )
         return recommendationEngine.evaluatedSnapshot(
             gardenProfile: gardenProfile,

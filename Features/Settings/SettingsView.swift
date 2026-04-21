@@ -52,7 +52,6 @@ struct SettingsView: View {
             Form {
                 Section {
                     LabeledContent("Saved Location", value: draftLocation.displayName)
-                    LabeledContent("Time Zone", value: draftLocation.timeZoneIdentifier)
 
                     Button("Change Location") {
                         isShowingLocationPicker = true
@@ -67,15 +66,11 @@ struct SettingsView: View {
                 } header: {
                     Label("Garden", systemImage: "leaf")
                 } footer: {
-                    Text("\(thresholdSummary) Changing your saved location clears the previous garden’s weather snapshot and manual watering history.")
+                    Text("\(thresholdSummary) Changing your garden location clears the previous location's weather history and manual watering log.")
                 }
 
                 Section {
                     Toggle("Watering Reminders", isOn: $notificationsEnabled)
-
-                    if notificationsEnabled {
-                        LabeledContent("Reminder Time", value: Self.reminderHourLabel(for: notificationHour))
-                    }
 
                     Picker("Reminder Time", selection: $notificationHour) {
                         ForEach(0..<24, id: \.self) { hour in
@@ -88,25 +83,6 @@ struct SettingsView: View {
                     Label("Reminders", systemImage: "bell")
                 } footer: {
                     Text(reminderSummary)
-                }
-
-                Section {
-                    if let weatherSnapshot, !weatherSnapshot.attributionText.isEmpty {
-                        DisclosureGroup("Show attribution details") {
-                            Text(weatherSnapshot.attributionText)
-                                .font(.footnote)
-
-                            if let attributionURL = URL(string: weatherSnapshot.attributionURLString) {
-                                Link("Open Legal Attribution", destination: attributionURL)
-                                    .font(.footnote.weight(.semibold))
-                            }
-                        }
-                    } else {
-                        Text("Weather attribution will appear after the first successful weather update.")
-                            .foregroundStyle(.secondary)
-                    }
-                } header: {
-                    Label("Weather Attribution", systemImage: "cloud.sun")
                 }
 
                 Section {
@@ -218,7 +194,7 @@ struct SettingsView: View {
         } else {
             activeAlert = SettingsAlert(
                 title: "Settings Saved",
-                message: partialSuccessMessage(
+                message: DrySpellConstants.partialSuccessMessage(
                     for: "saved your changes",
                     followUpIssues: followUpIssues
                 )
@@ -246,26 +222,19 @@ struct SettingsView: View {
     }
 
     private var thresholdSummary: String {
-        switch dryDayThresholdDays {
-        case 3:
-            return "A 3-day threshold makes reminders more proactive."
-        case 7:
-            return "A 7-day threshold waits for longer dry stretches."
-        default:
-            return "A 5-day threshold balances responsiveness and restraint."
-        }
+        DrySpellConstants.dryDayThresholdSummary(for: dryDayThresholdDays)
     }
 
     private var reminderSummary: String {
         if notificationsEnabled && notificationPermissionState == .denied {
-            return "Notifications are turned off in iPhone Settings, so Dry Spell can't schedule reminders right now. Turn notifications back on there, then save again."
+            return "Notifications are turned off in iPhone Settings, so reminders can't be scheduled right now. Turn them back on there, then save again."
         }
 
         if notificationsEnabled {
-            return "Dry Spell will consider reminders at \(Self.reminderHourLabel(for: notificationHour)) and only uses fresh weather data when deciding whether a reminder is eligible."
+            return "Dry Spell checks at \(Self.reminderHourLabel(for: notificationHour)) your time and only schedules reminders when the latest weather still points to watering."
         }
 
-        return "Reminders are off. Dry Spell only schedules new reminders when fresh weather supports watering."
+        return "Reminders are off. Turn them on to get a nudge when conditions point to watering."
     }
 
     @MainActor
@@ -276,9 +245,9 @@ struct SettingsView: View {
     private func reminderPermissionMessage(for permissionState: NotificationPermissionState) -> String {
         switch permissionState {
         case .denied:
-            return "Dry Spell can't enable reminders because notification permission is turned off in iPhone Settings. Your other changes are still on screen, and you can save them after this alert."
+            return "Reminders can't be turned on because notifications are off in iPhone Settings. Your other changes are still here, and you can save them after this alert."
         case .notDetermined, .unknown:
-            return "Dry Spell couldn't confirm notification access. Your other changes are still on screen, and you can save them after this alert."
+            return "Notification access couldn't be confirmed. Your other changes are still here, and you can save them after this alert."
         case .allowed:
             return "Dry Spell is ready to schedule reminders."
         }
@@ -293,20 +262,6 @@ struct SettingsView: View {
         return date.formatted(.dateTime.hour(.defaultDigits(amPM: .abbreviated)))
     }
 
-    private func partialSuccessMessage(
-        for completedAction: String,
-        followUpIssues: [String]
-    ) -> String {
-        let issueSummary: String
-
-        if followUpIssues.count == 1 {
-            issueSummary = "it couldn't \(followUpIssues[0])."
-        } else {
-            issueSummary = "it couldn't \(followUpIssues.dropLast().joined(separator: ", ")) or \(followUpIssues.last!)."
-        }
-
-        return "Dry Spell \(completedAction), but \(issueSummary)"
-    }
 }
 
 private struct SettingsAlert: Identifiable {
@@ -319,8 +274,6 @@ private struct LocationPickerSheet: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var locationSearch = LocationSearchService()
     @Binding var selectedLocation: ResolvedGardenLocation
-
-    @State private var resolvedLocation: ResolvedGardenLocation?
     @State private var isResolvingLocation = false
     @State private var activeAlert: SettingsAlert?
 
@@ -329,17 +282,10 @@ private struct LocationPickerSheet: View {
             List {
                 Section {
                     LabeledContent("Location", value: selectedLocation.displayName)
-                    LabeledContent("Time Zone", value: selectedLocation.timeZoneIdentifier)
                 } header: {
                     Text("Current Selection")
                 } footer: {
-                    Text("Search for a new location, then review the closest match before saving it.")
-                }
-
-                if isResolvingLocation {
-                    Section {
-                        ProgressView("Loading location details...")
-                    }
+                    Text("Search for a new location, then pick the best match to update Settings.")
                 }
 
                 if let errorMessage = locationSearch.errorMessage {
@@ -352,18 +298,17 @@ private struct LocationPickerSheet: View {
                     }
                 } else if locationSearch.query.trimmingCharacters(in: .whitespacesAndNewlines).count >= 2,
                           locationSearch.suggestions.isEmpty,
-                          !locationSearch.isSearching,
-                          resolvedLocation == nil {
+                          !locationSearch.isSearching {
                     Section {
                         ContentUnavailableView.search(text: locationSearch.query)
                     }
-                } else if !locationSearch.suggestions.isEmpty, resolvedLocation == nil {
+                } else if !locationSearch.suggestions.isEmpty {
                     Section {
                         ForEach(locationSearch.suggestions) { suggestion in
                             Button {
                                 resolveSuggestion(suggestion)
                             } label: {
-                                SettingsLocationSuggestionRow(suggestion: suggestion)
+                                GardenLocationSuggestionRow(suggestion: suggestion)
                             }
                             .buttonStyle(.plain)
                             .disabled(isResolvingLocation)
@@ -371,17 +316,7 @@ private struct LocationPickerSheet: View {
                     } header: {
                         Text("Suggestions")
                     } footer: {
-                        Text("Choose the closest match, then confirm it before saving.")
-                    }
-                }
-
-                if let resolvedLocation {
-                    Section {
-                        SettingsLocationSummaryCard(location: resolvedLocation)
-                    } header: {
-                        Text("Confirm Location")
-                    } footer: {
-                        Text("Use this location to replace your saved garden and clear weather history from the previous location.")
+                        Text("Choose the closest match. You'll still need to tap Save in Settings to keep the change.")
                     }
                 }
             }
@@ -390,35 +325,12 @@ private struct LocationPickerSheet: View {
             .searchable(text: $locationSearch.query, prompt: "Search for a location")
             .textInputAutocapitalization(.words)
             .autocorrectionDisabled()
-            .safeAreaInset(edge: .bottom) {
-                if let resolvedLocation {
-                    VStack(spacing: 0) {
-                        Divider()
-
-                        Button("Use This Location") {
-                            selectedLocation = resolvedLocation
-                            dismiss()
-                        }
-                        .buttonStyle(.glassProminent)
-                        .controlSize(.large)
-                        .frame(maxWidth: .infinity)
-                        .padding(.horizontal, 20)
-                        .padding(.vertical, 12)
-                        .background(.bar)
-                    }
-                }
-            }
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") {
                         dismiss()
                     }
                 }
-            }
-        }
-        .onChange(of: locationSearch.query) { _, newValue in
-            if newValue.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || resolvedLocation != nil {
-                resolvedLocation = nil
             }
         }
         .alert(item: $activeAlert) { alert in
@@ -436,7 +348,8 @@ private struct LocationPickerSheet: View {
             defer { isResolvingLocation = false }
 
             do {
-                resolvedLocation = try await locationSearch.resolveSuggestion(suggestion)
+                selectedLocation = try await locationSearch.resolveSuggestion(suggestion)
+                dismiss()
             } catch {
                 activeAlert = SettingsAlert(
                     title: "Invalid Location",
@@ -444,63 +357,6 @@ private struct LocationPickerSheet: View {
                 )
             }
         }
-    }
-}
-
-private struct SettingsLocationSuggestionRow: View {
-    let suggestion: LocationSuggestion
-
-    var body: some View {
-        HStack(alignment: .top, spacing: 12) {
-            Image(systemName: "mappin.and.ellipse")
-                .font(.body.weight(.semibold))
-                .foregroundStyle(.tint)
-                .frame(width: 24)
-
-            VStack(alignment: .leading, spacing: 4) {
-                Text(suggestion.title)
-                    .font(.headline)
-                    .foregroundStyle(.primary)
-
-                if !suggestion.subtitle.isEmpty {
-                    Text(suggestion.subtitle)
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                }
-            }
-
-            Spacer(minLength: 0)
-
-            Image(systemName: "chevron.right")
-                .font(.footnote.weight(.semibold))
-                .foregroundStyle(.tertiary)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .contentShape(Rectangle())
-    }
-}
-
-private struct SettingsLocationSummaryCard: View {
-    let location: ResolvedGardenLocation
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Label("Selected Result", systemImage: "checkmark.circle.fill")
-                .font(.subheadline.weight(.semibold))
-                .foregroundStyle(.blue)
-
-            LabeledContent("Location", value: location.displayName)
-            LabeledContent("Time Zone", value: location.timeZoneIdentifier)
-            LabeledContent(
-                "Coordinates",
-                value: "\(location.latitude.formatted(.number.precision(.fractionLength(4)))), \(location.longitude.formatted(.number.precision(.fractionLength(4))))"
-            )
-        }
-        .padding(16)
-        .background(
-            Color(uiColor: .secondarySystemGroupedBackground),
-            in: RoundedRectangle(cornerRadius: 18, style: .continuous)
-        )
     }
 }
 
@@ -517,7 +373,9 @@ private struct SettingsLocationSummaryCard: View {
             observed7DayRainMM: 12.8,
             forecast48hRainMM: 4.1,
             attributionText: "Weather data from Apple Weather.",
-            attributionURLString: "https://weatherkit.apple.com/legal-attribution.html"
+            attributionURLString: "https://weatherkit.apple.com/legal-attribution.html",
+            attributionCombinedMarkLightURLString: "https://weatherkit.apple.com/assets/branding/combined-mark-light.png",
+            attributionCombinedMarkDarkURLString: "https://weatherkit.apple.com/assets/branding/combined-mark-dark.png"
         )
     )
     .modelContainer(DrySpellModelContainer.preview)

@@ -96,16 +96,16 @@ struct RecommendationEngine {
 
         if wateredToday {
             status = .recentlyWatered
-            explanationText = "You marked watered today."
+            explanationText = "You already watered today."
         } else if weatherSnapshot.dryDays >= gardenProfile.dryDayThresholdDays, deficitMM > 0, forecastSuppressed {
             status = .rainExpected
-            explanationText = "Dry threshold reached, but enough rain is forecast in the next 48 hours."
+            explanationText = "Rain is on the way, so you can wait to water."
         } else if weatherSnapshot.dryDays >= gardenProfile.dryDayThresholdDays, deficitMM > 0 {
             status = .waterSoon
-            explanationText = "Dry threshold reached and no meaningful rain is forecast."
+            explanationText = "It's been dry, and the forecast won't make up the difference."
         } else {
             status = .okayForNow
-            explanationText = "Recent rain or forecast keeps watering need below the threshold."
+            explanationText = "Recent rain and forecast are keeping things on track."
         }
 
         return RecommendationResult(
@@ -185,7 +185,9 @@ struct RecommendationEngine {
             isStale: recommendation.freshness == .stale,
             isUnavailable: recommendation.isUnavailable,
             attributionText: weatherSnapshot.attributionText,
-            attributionURLString: weatherSnapshot.attributionURLString
+            attributionURLString: weatherSnapshot.attributionURLString,
+            attributionCombinedMarkLightURLString: weatherSnapshot.attributionCombinedMarkLightURLString,
+            attributionCombinedMarkDarkURLString: weatherSnapshot.attributionCombinedMarkDarkURLString
         )
     }
 

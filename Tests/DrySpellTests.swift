@@ -189,6 +189,63 @@ struct DrySpellTests {
 
     @Test
     @MainActor
+    func storeKeepsLocationDependentDataForDisplayNameOnlyChange() throws {
+        let container = DrySpellModelContainer.makePreviewContainer()
+        let store = DrySpellStore(modelContext: ModelContext(container))
+        let existingProfile = try store.saveGardenProfile(
+            GardenProfile(
+                displayName: "Back Garden",
+                latitude: 49.2827,
+                longitude: -123.1207,
+                timeZoneIdentifier: "America/Vancouver",
+                dryDayThresholdDays: 5
+            )
+        )
+        let snapshot = try store.saveWeatherSnapshot(
+            WeatherSnapshot(
+                fetchedAt: Date(timeIntervalSince1970: 1_713_456_000),
+                observed7DayRainMM: 8.0,
+                forecast48hRainMM: 0,
+                effective7DayMoistureMM: 8.0,
+                deficitMM: 17.4,
+                dryDays: 5,
+                recommendationRawValue: RecommendationStatus.okayForNow.rawValue
+            )
+        )
+        _ = try store.saveManualWaterEvent(
+            ManualWaterEvent(
+                occurredAt: Date(timeIntervalSince1970: 1_713_369_600),
+                creditedMM: 10.0
+            )
+        )
+
+        _ = try store.saveGardenSettings(
+            existingProfile: existingProfile,
+            location: ResolvedGardenLocation(
+                displayName: "Back Garden, Vancouver, BC, Canada",
+                latitude: 49.2827,
+                longitude: -123.1207,
+                timeZoneIdentifier: "America/Vancouver"
+            ),
+            dryDayThresholdDays: 5,
+            notificationsEnabled: false,
+            notificationHour: 9,
+            weatherSnapshot: snapshot,
+            recommendationEngine: RecommendationEngine(),
+            now: Date(timeIntervalSince1970: 1_713_456_000)
+        )
+
+        let reloadedSnapshot = try #require(try store.loadLatestWeatherSnapshot())
+        let manualWaterEvents = try store.loadManualWaterEvents()
+        let reloadedProfile = try #require(try store.loadGardenProfile())
+
+        #expect(reloadedProfile.displayName == "Back Garden, Vancouver, BC, Canada")
+        #expect(reloadedSnapshot.recommendationRawValue == RecommendationStatus.okayForNow.rawValue)
+        #expect(manualWaterEvents.count == 1)
+    }
+
+    @Test
+    @MainActor
     func storeDoesNotPersistPartialSettingsWhenCommitFails() throws {
         let container = DrySpellModelContainer.makePreviewContainer()
         let store = DrySpellStore(modelContext: ModelContext(container))
@@ -330,7 +387,7 @@ struct DrySpellTests {
         )
         let snapshot = WidgetSnapshot(
             statusTitle: "Rain expected",
-            statusSubtitle: "Dry 5 days",
+            statusSubtitle: "Dry for 5 days",
             lastMeaningfulRainDate: Date(timeIntervalSince1970: 1_713_369_600),
             dryDays: 5,
             observed7DayRainMM: 12.4,
@@ -393,7 +450,7 @@ struct DrySpellTests {
             now: now
         )
 
-        #expect(emptySnapshot.statusTitle == "Set up in app")
+        #expect(emptySnapshot.statusTitle == "Set up your garden")
         #expect(emptySnapshot.updatedAt == now)
         #expect(unavailableSnapshot.statusTitle == "Weather unavailable")
         #expect(unavailableSnapshot.updatedAt == now)
@@ -701,7 +758,7 @@ struct DrySpellTests {
         )
 
         #expect(wateredToday.status == .recentlyWatered)
-        #expect(wateredToday.explanationText == "You marked watered today.")
+        #expect(wateredToday.explanationText == "You already watered today.")
     }
 
     @Test
@@ -796,7 +853,10 @@ struct DrySpellTests {
     @Test
     func notificationSchedulerSchedulesWhenEligible() async throws {
         let centerClient = NotificationCenterClientSpy(authorizationStatus: .authorized)
-        let scheduler = NotificationScheduler(centerClient: centerClient)
+        let scheduler = NotificationScheduler(
+            centerClient: centerClient,
+            reminderTimeZone: TimeZone(identifier: "America/Vancouver") ?? .gmt
+        )
         let now = Date(timeIntervalSince1970: 1_713_429_000) // 2024-04-18 08:30 PDT
         let profile = GardenProfile(
             displayName: "Back Garden",
@@ -828,10 +888,48 @@ struct DrySpellTests {
         #expect(removed.isEmpty)
         #expect(addedRequests.count == 1)
         #expect(request.identifier == DrySpellConstants.wateringReminderIdentifier)
-        #expect(request.title == "Water soon")
+        #expect(request.title == "Time to water")
         #expect(request.dateComponents.hour == 9)
         #expect(request.dateComponents.minute == 0)
         #expect(request.dateComponents.timeZone?.identifier == "America/Vancouver")
+    }
+
+    @Test
+    func notificationSchedulerUsesDeviceTimeZoneForDelivery() async throws {
+        let centerClient = NotificationCenterClientSpy(authorizationStatus: .authorized)
+        let scheduler = NotificationScheduler(
+            centerClient: centerClient,
+            reminderTimeZone: TimeZone(identifier: "America/New_York") ?? .gmt
+        )
+        let now = Date(timeIntervalSince1970: 1_713_429_000)
+        let profile = GardenProfile(
+            displayName: "Back Garden",
+            latitude: 49.2827,
+            longitude: -123.1207,
+            timeZoneIdentifier: "America/Vancouver",
+            dryDayThresholdDays: 5,
+            notificationsEnabled: true,
+            notificationHour: 9
+        )
+        let snapshot = WeatherSnapshot(
+            fetchedAt: now,
+            observed7DayRainMM: 8,
+            forecast48hRainMM: 0,
+            dryDays: 5
+        )
+
+        try await scheduler.syncReminder(
+            gardenProfile: profile,
+            weatherSnapshot: snapshot,
+            manualWaterEvents: [],
+            now: now
+        )
+
+        let request = try #require(await centerClient.addedRequests.first)
+
+        #expect(request.dateComponents.hour == 9)
+        #expect(request.dateComponents.minute == 0)
+        #expect(request.dateComponents.timeZone?.identifier == "America/New_York")
     }
 
     @Test

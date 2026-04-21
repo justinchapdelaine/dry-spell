@@ -35,7 +35,7 @@ struct WidgetSnapshot: Codable, Equatable, Sendable {
 
     static let preview = WidgetSnapshot(
         statusTitle: "Water soon",
-        statusSubtitle: "Dry 5 days",
+        statusSubtitle: "Dry for 5 days",
         lastMeaningfulRainDate: Calendar.current.date(byAdding: .day, value: -5, to: .now),
         dryDays: 5,
         observed7DayRainMM: 8.2,
@@ -47,7 +47,7 @@ struct WidgetSnapshot: Codable, Equatable, Sendable {
 
     static func setupNeeded(now: Date = .now) -> WidgetSnapshot {
         WidgetSnapshot(
-            statusTitle: "Set up in app",
+            statusTitle: "Set up your garden",
             statusSubtitle: "Add your garden location to get started.",
             updatedAt: now,
             isStale: false,
@@ -58,7 +58,7 @@ struct WidgetSnapshot: Codable, Equatable, Sendable {
     static func unavailable(now: Date = .now) -> WidgetSnapshot {
         WidgetSnapshot(
             statusTitle: "Weather unavailable",
-            statusSubtitle: "Open Dry Spell to refresh weather.",
+            statusSubtitle: "Open Dry Spell for the latest weather.",
             updatedAt: now,
             isStale: false,
             isUnavailable: true
@@ -85,7 +85,7 @@ struct WidgetSnapshot: Codable, Equatable, Sendable {
             return .unavailable(now: now)
         }
 
-        let dryDaysText = dryDays > 0 ? "Dry \(dryDays) days" : "Updated in app"
+        let dryDaysText = dryDays > 0 ? "Dry for \(dryDays) days" : "Check the app for details"
         let title: String
         let subtitle: String
 
@@ -95,7 +95,7 @@ struct WidgetSnapshot: Codable, Equatable, Sendable {
         case "weatherUnavailable":
             return WidgetSnapshot(
                 statusTitle: "Weather unavailable",
-                statusSubtitle: "Open Dry Spell to refresh weather.",
+                statusSubtitle: "Open Dry Spell for the latest weather.",
                 lastMeaningfulRainDate: lastMeaningfulRainDate,
                 dryDays: dryDays,
                 observed7DayRainMM: observed7DayRainMM,
@@ -115,7 +115,7 @@ struct WidgetSnapshot: Codable, Equatable, Sendable {
             subtitle = dryDaysText
         case "okayForNow":
             title = "Okay for now"
-            subtitle = dryDays > 0 ? dryDaysText : "Conditions stable"
+            subtitle = dryDays > 0 ? dryDaysText : "Conditions steady"
         default:
             return .unavailable(now: now)
         }

@@ -27,6 +27,8 @@ final class WeatherSnapshot {
     var isUnavailable: Bool
     var attributionText: String
     var attributionURLString: String
+    var attributionCombinedMarkLightURLString: String?
+    var attributionCombinedMarkDarkURLString: String?
 
     init(
         id: UUID = UUID(),
@@ -43,7 +45,9 @@ final class WeatherSnapshot {
         isStale: Bool = false,
         isUnavailable: Bool = false,
         attributionText: String = "",
-        attributionURLString: String = ""
+        attributionURLString: String = "",
+        attributionCombinedMarkLightURLString: String? = nil,
+        attributionCombinedMarkDarkURLString: String? = nil
     ) {
         self.id = id
         self.fetchedAt = fetchedAt
@@ -60,5 +64,7 @@ final class WeatherSnapshot {
         self.isUnavailable = isUnavailable
         self.attributionText = attributionText
         self.attributionURLString = attributionURLString
+        self.attributionCombinedMarkLightURLString = attributionCombinedMarkLightURLString
+        self.attributionCombinedMarkDarkURLString = attributionCombinedMarkDarkURLString
     }
 }

@@ -116,13 +116,27 @@ struct NotificationAuthorizationService {
 struct NotificationScheduler {
     private let centerClient: UserNotificationCenterClient
     private let recommendationEngine: RecommendationEngine
+    private let reminderTimeZone: TimeZone
 
     init(
         centerClient: UserNotificationCenterClient = SystemUserNotificationCenterClient(),
         recommendationEngine: RecommendationEngine = RecommendationEngine()
     ) {
+        self.init(
+            centerClient: centerClient,
+            recommendationEngine: recommendationEngine,
+            reminderTimeZone: .autoupdatingCurrent
+        )
+    }
+
+    init(
+        centerClient: UserNotificationCenterClient = SystemUserNotificationCenterClient(),
+        recommendationEngine: RecommendationEngine = RecommendationEngine(),
+        reminderTimeZone: TimeZone
+    ) {
         self.centerClient = centerClient
         self.recommendationEngine = recommendationEngine
+        self.reminderTimeZone = reminderTimeZone
     }
 
     func syncReminder(
@@ -164,11 +178,10 @@ struct NotificationScheduler {
         try await centerClient.add(
             ScheduledNotificationRequest(
                 identifier: DrySpellConstants.wateringReminderIdentifier,
-                title: "Water soon",
-                body: "\(gardenProfile.displayName) has been dry for \(weatherSnapshot?.dryDays ?? 0) days. Dry Spell recommends watering today.",
+                title: "Time to water",
+                body: "\(gardenProfile.displayName) has been dry for \(weatherSnapshot?.dryDays ?? 0) days, and it's a good day to water.",
                 dateComponents: nextReminderDateComponents(
                     notificationHour: gardenProfile.notificationHour,
-                    timeZoneIdentifier: gardenProfile.timeZoneIdentifier,
                     now: now
                 )
             )
@@ -183,10 +196,10 @@ struct NotificationScheduler {
 
     func nextReminderDateComponents(
         notificationHour: Int,
-        timeZoneIdentifier: String,
         now: Date
     ) -> DateComponents {
-        let calendar = calendar(for: timeZoneIdentifier)
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = reminderTimeZone
         let reminderHour = min(max(notificationHour, 0), 23)
         let todayReminderDate = calendar.date(
             bySettingHour: reminderHour,

@@ -332,7 +332,6 @@ struct DrySpellStore {
         existingProfile: GardenProfile,
         location: ResolvedGardenLocation
     ) -> Bool {
-        location.displayName != existingProfile.displayName ||
         location.latitude != existingProfile.latitude ||
         location.longitude != existingProfile.longitude ||
         location.timeZoneIdentifier != existingProfile.timeZoneIdentifier

@@ -15,7 +15,7 @@ struct WidgetSnapshotPayload: Codable, Equatable {
 
     static let preview = WidgetSnapshotPayload(
         statusTitle: "Water soon",
-        statusSubtitle: "Dry 5 days",
+        statusSubtitle: "Dry for 5 days",
         lastMeaningfulRainDate: Calendar.current.date(byAdding: .day, value: -5, to: .now),
         dryDays: 5,
         observed7DayRainMM: 8.2,
@@ -27,7 +27,7 @@ struct WidgetSnapshotPayload: Codable, Equatable {
 
     static func setupNeeded(now: Date = .now) -> WidgetSnapshotPayload {
         WidgetSnapshotPayload(
-            statusTitle: "Set up in app",
+            statusTitle: "Set up your garden",
             statusSubtitle: "Add your garden location to get started.",
             lastMeaningfulRainDate: nil,
             dryDays: 0,
@@ -42,7 +42,7 @@ struct WidgetSnapshotPayload: Codable, Equatable {
     static func unavailable(now: Date = .now) -> WidgetSnapshotPayload {
         WidgetSnapshotPayload(
             statusTitle: "Weather unavailable",
-            statusSubtitle: "Open Dry Spell to refresh weather.",
+            statusSubtitle: "Open Dry Spell for the latest weather.",
             lastMeaningfulRainDate: nil,
             dryDays: 0,
             observed7DayRainMM: 0,
@@ -128,7 +128,7 @@ private struct WidgetDisplayState {
         let isAgedStale = age > 6 * 60 * 60 && !isAgedUnavailable
 
         self.title = isAgedUnavailable ? "Weather unavailable" : snapshot.statusTitle
-        self.subtitle = isAgedUnavailable ? "Open Dry Spell to refresh weather." : snapshot.statusSubtitle
+        self.subtitle = isAgedUnavailable ? "Open Dry Spell for the latest weather." : snapshot.statusSubtitle
         self.lastMeaningfulRainDate = snapshot.lastMeaningfulRainDate
         self.dryDays = snapshot.dryDays
         self.observed7DayRainMM = snapshot.observed7DayRainMM
@@ -144,7 +144,7 @@ private struct WidgetDisplayState {
 
     var lastRainText: String {
         guard let lastMeaningfulRainDate else {
-            return "None recently"
+            return "No recent rain"
         }
 
         return lastMeaningfulRainDate.formatted(.dateTime.month(.abbreviated).day())
@@ -232,7 +232,7 @@ struct DrySpellWidgetEntryView: View {
                     .font(.caption2)
                     .foregroundStyle(.secondary)
             } else if display.dryDays > 0 && !display.isUnavailable {
-                Text("Dry \(display.dryDays) days")
+                Text("Dry for \(display.dryDays) days")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -262,7 +262,7 @@ struct DrySpellWidgetEntryView: View {
 
             Spacer(minLength: 0)
 
-            Text(display.isUnavailable ? "Open Dry Spell to refresh weather." : display.staleText)
+            Text(display.isUnavailable ? "Open Dry Spell for the latest weather." : display.staleText)
                 .font(.caption2)
                 .foregroundStyle(.secondary)
         }
@@ -295,7 +295,7 @@ struct DrySpellWidget: Widget {
             DrySpellWidgetEntryView(entry: entry)
         }
         .configurationDisplayName("Dry Spell")
-        .description("See your garden watering status at a glance.")
+        .description("See whether it's time to water at a glance.")
         .supportedFamilies([.systemSmall, .systemMedium])
     }
 }

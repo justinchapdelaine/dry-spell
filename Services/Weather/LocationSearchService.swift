@@ -4,11 +4,18 @@ import Foundation
 import MapKit
 
 struct LocationSuggestion: Identifiable, Equatable, Sendable {
+    let id: String
     let title: String
     let subtitle: String
 
-    var id: String {
-        "\(title)|\(subtitle)"
+    init(
+        id: String = UUID().uuidString,
+        title: String,
+        subtitle: String
+    ) {
+        self.id = id
+        self.title = title
+        self.subtitle = subtitle
     }
 }
 
@@ -52,6 +59,7 @@ final class LocationSearchService: NSObject, ObservableObject {
     @Published private(set) var errorMessage: String?
 
     private let completer: MKLocalSearchCompleter
+    private var completionBySuggestionID: [String: MKLocalSearchCompletion] = [:]
 
     init(completer: MKLocalSearchCompleter = MKLocalSearchCompleter()) {
         self.completer = completer
@@ -62,9 +70,7 @@ final class LocationSearchService: NSObject, ObservableObject {
     }
 
     func resolveSuggestion(_ suggestion: LocationSuggestion) async throws -> ResolvedGardenLocation {
-        guard let completion = completer.results.first(where: {
-            $0.title == suggestion.title && $0.subtitle == suggestion.subtitle
-        }) else {
+        guard let completion = completionBySuggestionID[suggestion.id] else {
             throw LocationSearchError.missingCompletion
         }
 
@@ -95,6 +101,7 @@ final class LocationSearchService: NSObject, ObservableObject {
             completer.cancel()
             isSearching = false
             errorMessage = nil
+            completionBySuggestionID = [:]
             suggestions = []
             return
         }
@@ -133,13 +140,22 @@ extension LocationSearchService: MKLocalSearchCompleterDelegate {
     func completerDidUpdateResults(_ completer: MKLocalSearchCompleter) {
         isSearching = false
         errorMessage = nil
-        suggestions = completer.results.map {
-            LocationSuggestion(title: $0.title, subtitle: $0.subtitle)
+
+        var completionBySuggestionID: [String: MKLocalSearchCompletion] = [:]
+        suggestions = completer.results.map { completion in
+            let suggestion = LocationSuggestion(
+                title: completion.title,
+                subtitle: completion.subtitle
+            )
+            completionBySuggestionID[suggestion.id] = completion
+            return suggestion
         }
+        self.completionBySuggestionID = completionBySuggestionID
     }
 
     func completer(_ completer: MKLocalSearchCompleter, didFailWithError error: any Error) {
         isSearching = false
+        completionBySuggestionID = [:]
         suggestions = []
         errorMessage = error.localizedDescription
     }

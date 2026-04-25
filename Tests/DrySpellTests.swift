@@ -246,6 +246,65 @@ struct DrySpellTests {
 
     @Test
     @MainActor
+    func storePrefersPersistedSnapshotOverInjectedSettingsSnapshot() throws {
+        let container = DrySpellModelContainer.makePreviewContainer()
+        let store = DrySpellStore(modelContext: ModelContext(container))
+        let existingProfile = try store.saveGardenProfile(
+            GardenProfile(
+                displayName: "Back Garden",
+                latitude: 49.2827,
+                longitude: -123.1207,
+                timeZoneIdentifier: "America/Vancouver",
+                dryDayThresholdDays: 7
+            )
+        )
+        _ = try store.saveWeatherSnapshot(
+            WeatherSnapshot(
+                fetchedAt: Date(timeIntervalSince1970: 1_713_456_000),
+                observed7DayRainMM: 8.0,
+                forecast48hRainMM: 0,
+                effective7DayMoistureMM: 8.0,
+                deficitMM: 17.4,
+                dryDays: 5,
+                recommendationRawValue: RecommendationStatus.okayForNow.rawValue
+            )
+        )
+
+        let staleSnapshot = WeatherSnapshot(
+            fetchedAt: Date(timeIntervalSince1970: 1_713_300_000),
+            observed7DayRainMM: 20.0,
+            forecast48hRainMM: 0,
+            effective7DayMoistureMM: 20.0,
+            deficitMM: 5.4,
+            dryDays: 2,
+            recommendationRawValue: RecommendationStatus.okayForNow.rawValue
+        )
+
+        _ = try store.saveGardenSettings(
+            existingProfile: existingProfile,
+            location: ResolvedGardenLocation(
+                displayName: "Back Garden",
+                latitude: 49.2827,
+                longitude: -123.1207,
+                timeZoneIdentifier: "America/Vancouver"
+            ),
+            dryDayThresholdDays: 5,
+            notificationsEnabled: false,
+            notificationHour: 9,
+            weatherSnapshot: staleSnapshot,
+            recommendationEngine: RecommendationEngine(),
+            now: Date(timeIntervalSince1970: 1_713_456_000)
+        )
+
+        let reloadedSnapshot = try #require(try store.loadLatestWeatherSnapshot())
+
+        #expect(reloadedSnapshot.fetchedAt == Date(timeIntervalSince1970: 1_713_456_000))
+        #expect(reloadedSnapshot.dryDays == 5)
+        #expect(reloadedSnapshot.recommendationRawValue == RecommendationStatus.waterSoon.rawValue)
+    }
+
+    @Test
+    @MainActor
     func storeDoesNotPersistPartialSettingsWhenCommitFails() throws {
         let container = DrySpellModelContainer.makePreviewContainer()
         let store = DrySpellStore(modelContext: ModelContext(container))
@@ -290,6 +349,14 @@ struct DrySpellTests {
                 now: Date(timeIntervalSince1970: 1_713_456_000)
             )
         }
+
+        let activeProfile = try #require(try store.loadGardenProfile())
+        let activeSnapshot = try #require(try store.loadLatestWeatherSnapshot())
+
+        #expect(activeProfile.displayName == "Back Garden")
+        #expect(activeProfile.notificationsEnabled == false)
+        #expect(activeProfile.notificationHour == DrySpellConstants.defaultNotificationHour)
+        #expect(activeSnapshot.recommendationRawValue == RecommendationStatus.okayForNow.rawValue)
 
         let reloadedStore = DrySpellStore(modelContext: ModelContext(container))
         let reloadedProfile = try #require(try reloadedStore.loadGardenProfile())
@@ -455,6 +522,22 @@ struct DrySpellTests {
         #expect(unavailableSnapshot.statusTitle == "Weather unavailable")
         #expect(unavailableSnapshot.updatedAt == now)
         #expect(unavailableSnapshot.isUnavailable)
+    }
+
+    @Test
+    func locationSuggestionUsesUniqueIDsForDuplicateLabels() {
+        let firstSuggestion = LocationSuggestion(
+            title: "Starbucks",
+            subtitle: "123 Main St"
+        )
+        let secondSuggestion = LocationSuggestion(
+            title: "Starbucks",
+            subtitle: "123 Main St"
+        )
+
+        #expect(firstSuggestion.id != secondSuggestion.id)
+        #expect(firstSuggestion.title == secondSuggestion.title)
+        #expect(firstSuggestion.subtitle == secondSuggestion.subtitle)
     }
 
     @Test

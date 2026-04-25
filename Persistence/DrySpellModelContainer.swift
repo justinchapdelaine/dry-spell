@@ -180,38 +180,43 @@ struct DrySpellStore {
         let thresholdChanged = dryDayThresholdDays != existingProfile.dryDayThresholdDays
         let currentSnapshot = try loadLatestWeatherSnapshot()
         let manualWaterEvents = thresholdChanged && !locationChanged ? try loadManualWaterEvents() : []
-        let savedProfile = try upsertGardenProfile(
-            GardenProfile(
-                id: existingProfile.id,
-                displayName: location.displayName,
-                latitude: location.latitude,
-                longitude: location.longitude,
-                timeZoneIdentifier: location.timeZoneIdentifier,
-                dryDayThresholdDays: dryDayThresholdDays,
-                notificationsEnabled: notificationsEnabled,
-                notificationHour: notificationHour,
-                createdAt: existingProfile.createdAt,
-                updatedAt: now
+        do {
+            let savedProfile = try upsertGardenProfile(
+                GardenProfile(
+                    id: existingProfile.id,
+                    displayName: location.displayName,
+                    latitude: location.latitude,
+                    longitude: location.longitude,
+                    timeZoneIdentifier: location.timeZoneIdentifier,
+                    dryDayThresholdDays: dryDayThresholdDays,
+                    notificationsEnabled: notificationsEnabled,
+                    notificationHour: notificationHour,
+                    createdAt: existingProfile.createdAt,
+                    updatedAt: now
+                )
             )
-        )
 
-        if locationChanged {
-            try resetLocationDependentData(saveChanges: false)
-        } else if thresholdChanged,
-                  let currentSnapshot = weatherSnapshot ?? currentSnapshot {
-            let reevaluatedSnapshot = recommendationEngine.evaluatedSnapshot(
-                gardenProfile: savedProfile,
-                weatherSnapshot: currentSnapshot,
-                manualWaterEvents: manualWaterEvents,
-                now: now,
-                calendar: calendar(for: savedProfile.timeZoneIdentifier)
-            )
-            _ = try replaceWeatherSnapshot(reevaluatedSnapshot)
+            if locationChanged {
+                try resetLocationDependentData(saveChanges: false)
+            } else if thresholdChanged,
+                      let currentSnapshot = currentSnapshot ?? weatherSnapshot {
+                let reevaluatedSnapshot = recommendationEngine.evaluatedSnapshot(
+                    gardenProfile: savedProfile,
+                    weatherSnapshot: currentSnapshot,
+                    manualWaterEvents: manualWaterEvents,
+                    now: now,
+                    calendar: calendar(for: savedProfile.timeZoneIdentifier)
+                )
+                _ = try replaceWeatherSnapshot(reevaluatedSnapshot)
+            }
+
+            try beforeCommit?()
+            try saveChangesIfNeeded()
+            return savedProfile
+        } catch {
+            modelContext.rollback()
+            throw error
         }
-
-        try beforeCommit?()
-        try saveChangesIfNeeded()
-        return savedProfile
     }
 
     func resetLocationDependentData() throws {
